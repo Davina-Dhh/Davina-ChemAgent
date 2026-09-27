@@ -24,6 +24,7 @@ from history_store import (
     save_record,
 )
 from name_resolve import resolve_to_smiles
+from ops_manual import inject_ops_manual
 from reaction_predict import PredictResult, mol_image, run_prediction, validate_smiles
 
 load_dotenv()
@@ -3754,6 +3755,7 @@ def page_protein():
 
 def page_help():
     st.subheader("使用说明")
+    st.info("完整分步操作见右下角蓝色「手册」按钮（可拖动、任意页打开/关闭）。")
     st.markdown(
         """
 ### 功能位置
@@ -3838,6 +3840,9 @@ def main():
         page_pathway()
     else:
         page_help()
+
+    # 全站浮动操作手册（盖住所有层，可拖拽/开关，与当前页无关）
+    inject_ops_manual()
 
 
 if __name__ == "__main__":
