@@ -1113,7 +1113,7 @@ def _sidebar_keys() -> None:
     try:
         import demo_defaults as _dd
 
-        for k in ("OPENAI_API_KEY", "OPENAI_API_BASE", "CHEMCROW_MODEL"):
+        for k in ("OPENAI_API_KEY", "OPENAI_API_BASE", "CHEMCROW_MODEL", "REACTIONT5_DISCOVERY_URL"):
             v = getattr(_dd, k, None)
             if v and not (os.getenv(k) or "").strip():
                 os.environ[k] = str(v)
@@ -1131,6 +1131,7 @@ def _sidebar_keys() -> None:
                 "HF_TOKEN",
                 "REACTIONT5_API_URL",
                 "REACTIONT5_API_TOKEN",
+                "REACTIONT5_DISCOVERY_URL",
             ):
                 try:
                     v = st.secrets.get(k)  # type: ignore[attr-defined]
@@ -1166,18 +1167,18 @@ def _sidebar_keys() -> None:
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.caption("专业反应模型 · 远程服务（Cloud 默认连这台电脑）")
+    st.sidebar.caption("专业反应模型（电脑开机跑 keep_t5_online.bat 即可）")
     t5_url = st.sidebar.text_input(
-        "反应模型 API URL",
+        "反应模型 API URL（可留空，自动发现）",
         value=os.getenv("REACTIONT5_API_URL", ""),
-        help="本机服务经 cloudflared/ngrok 暴露的 https 地址。重启电脑后 URL 常会变，需更新 Secrets。",
-        placeholder="https://xxxx.trycloudflare.com",
+        help="一般留空：Cloud 会读仓库里的发现链接。只有要手动覆盖时才填。",
+        placeholder="通常留空即可",
     )
     t5_tok = st.sidebar.text_input(
         "反应模型 API Token",
         value=os.getenv("REACTIONT5_API_TOKEN", ""),
         type="password",
-        help="与本机 .reactiont5_token / 环境变量一致",
+        help="与本机 .reactiont5_token 一致（Cloud Secrets 配一次即可）",
     )
 
     presets = [
@@ -2106,7 +2107,12 @@ def page_predict():
 
     st.markdown("### ②½ 预测引擎（可切换）")
     has_rxn = bool((os.getenv("RXN4CHEM_API_KEY") or "").strip())
-    has_t5_url = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
+    try:
+        from reactiont5_remote import resolve_reactiont5_base_url
+
+        has_t5_url = bool(resolve_reactiont5_base_url())
+    except Exception:
+        has_t5_url = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
     engine_labels = {
         "auto": "自动（优先专业反应模型 → 连不上再用大模型）",
         "reactiont5": "仅专业反应模型"

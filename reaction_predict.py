@@ -504,16 +504,25 @@ def run_prediction(
     force_llm = product_engine == "llm"
     force_rxn = product_engine == "rxn"
     force_t5 = product_engine == "reactiont5"
-    has_t5_remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
     try:
-        from cloud_env import reactiont5_allowed as _t5_ok
+        from reactiont5_remote import resolve_reactiont5_base_url as _t5_base
+
+        has_t5_remote = bool(_t5_base())
+    except Exception:
+        has_t5_remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
+    try:
+        from cloud_env import is_streamlit_cloud, reactiont5_allowed as _t5_ok
 
         t5_local_ok = bool(_t5_ok())
+        on_cloud = bool(is_streamlit_cloud())
     except Exception:
         t5_local_ok = True
-    # 自动：有远程 URL 或本机允许 → 优先 T5，失败再 RXN/大模型
+        on_cloud = False
+    # 自动：Cloud 始终先试远程发现；本机有缓存/远程也先试 T5
     try_t5 = force_t5 or (
-        product_engine == "auto" and not force_llm and (has_t5_remote or t5_local_ok)
+        product_engine == "auto"
+        and not force_llm
+        and (has_t5_remote or t5_local_ok or on_cloud)
     )
 
     if force_rxn and not key:

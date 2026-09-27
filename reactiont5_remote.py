@@ -240,6 +240,51 @@ def predict_products_local(
     return result
 
 
+def resolve_reactiont5_base_url(*, discovery_timeout: float = 8.0) -> str:
+    """解析 ReactionT5 服务根地址。
+
+    优先级:
+      1) 环境变量 REACTIONT5_API_URL（手动覆盖）
+      2) 发现链接 JSON（默认 GitHub raw static/t5_endpoint.json）
+         — 本机 keep_t5_online.py 会自动更新并 push，Cloud 不用改 Secrets
+    """
+    import json
+    import time
+    import urllib.request
+
+    direct = (os.getenv("REACTIONT5_API_URL") or "").strip().rstrip("/")
+    if direct:
+        return direct
+
+    discovery = (
+        os.getenv("REACTIONT5_DISCOVERY_URL")
+        or "https://raw.githubusercontent.com/Davina-Dhh/Davina-ChemAgent/main/static/t5_endpoint.json"
+    ).strip()
+    if not discovery:
+        return ""
+
+    url = discovery
+    if "raw.githubusercontent.com" in discovery and "?" not in discovery:
+        url = f"{discovery}?t={int(time.time())}"
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Cache-Control": "no-cache",
+                "Pragma": "no-cache",
+                "User-Agent": "ChemAgent-ReactionT5-Discovery/1.0",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=float(discovery_timeout)) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        base = (data.get("url") or "").strip().rstrip("/")
+        if base.startswith("http"):
+            return base
+    except Exception:
+        return ""
+    return ""
+
+
 def predict_products_remote(
     reactants: str,
     reagents: str = "",
@@ -251,22 +296,23 @@ def predict_products_remote(
     """调用远程 ReactionT5 HTTP 服务（本机隧道 / 自建机）。
 
     环境变量:
-      REACTIONT5_API_URL    如 https://xxxx.trycloudflare.com 或 http://host:8765
-      REACTIONT5_API_TOKEN  与服务端一致的令牌（可选但强烈建议）
+      REACTIONT5_API_URL         手动指定（优先）
+      REACTIONT5_DISCOVERY_URL   发现链接（默认仓库 static/t5_endpoint.json）
+      REACTIONT5_API_TOKEN       与服务端一致的令牌
     """
     del max_wait_load
     import json
     import urllib.error
     import urllib.request
 
-    base = (os.getenv("REACTIONT5_API_URL") or "").strip().rstrip("/")
+    base = resolve_reactiont5_base_url()
     if not base:
         raise RuntimeError(
-            "未配置 REACTIONT5_API_URL。请在本机启动 reactiont5_server，"
-            "用 cloudflared/ngrok 暴露后，把公网 URL 写入 Streamlit Secrets。"
+            "未找到 ReactionT5 公网地址。请在本机运行 keep_t5_online.bat"
+            "（会自动开隧道并发布发现链接），或设置 REACTIONT5_API_URL。"
         )
 
-    url = base + "/predict"
+    pred_url = base + "/predict"
     payload = json.dumps(
         {
             "reactants": reactants,
@@ -276,7 +322,7 @@ def predict_products_remote(
         ensure_ascii=False,
     ).encode("utf-8")
     req = urllib.request.Request(
-        url,
+        pred_url,
         data=payload,
         method="POST",
         headers={"Content-Type": "application/json"},
@@ -295,7 +341,7 @@ def predict_products_remote(
     except Exception as exc:  # noqa: BLE001
         raise RuntimeError(
             f"无法连接 ReactionT5 远程服务 `{base}`：{exc}\n"
-            "请确认本机服务已启动，且隧道（cloudflared/ngrok）在线。"
+            "请确认本机已运行 keep_t5_online.bat，且电脑未休眠。"
         ) from exc
 
     products = data.get("products") or []
@@ -317,27 +363,35 @@ def predict_products(
     *,
     top_n: int = 5,
 ) -> List[Tuple[str, Optional[float]]]:
-    """优先远程 API；无 URL 时再本机推理。"""
-    if (os.getenv("REACTIONT5_API_URL") or "").strip():
+    """有公网地址（手动或发现链接）走远程；否则本机推理。"""
+    if resolve_reactiont5_base_url():
         return predict_products_remote(reactants, reagents, top_n=top_n)
+    try:
+        from cloud_env import is_streamlit_cloud
+
+        if is_streamlit_cloud():
+            # Cloud 不能加载本地权重：强制走远程发现；失败由上层回退大模型
+            return predict_products_remote(reactants, reagents, top_n=top_n)
+    except Exception:
+        pass
     return predict_products_local(reactants, reagents, top_n=top_n)
 
 
 def cache_status() -> dict:
-    """给 UI 显示：缓存是否就绪 / 是否走远程。"""
-    remote = (os.getenv("REACTIONT5_API_URL") or "").strip()
-    if remote:
+    """给 UI 显示。"""
+    base = resolve_reactiont5_base_url()
+    if base:
         return {
             "model_id": MODEL_ID,
             "ready": True,
-            "mode": f"远程 API · {remote}",
+            "mode": f"远程 · {base}",
             "remote": True,
-            "remote_url": remote,
+            "remote_url": base,
         }
     ready = _cache_ready(MODEL_ID)
     return {
         "model_id": MODEL_ID,
         "ready": ready,
-        "mode": "离线本地缓存" if ready else "需从 hf-mirror 下载 ~800MB",
+        "mode": "离线本地缓存" if ready else "需下载模型权重",
         "remote": False,
     }

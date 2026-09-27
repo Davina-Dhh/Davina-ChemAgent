@@ -20,53 +20,24 @@
 > 大模型估算产物质量通常明显弱于 ReactionT5。  
 > **推荐：本机跑 ReactionT5 API，用隧道暴露，Cloud 远程调用（质量与本机一致）。**
 
-### Cloud + 本机 ReactionT5（推荐）
+### Cloud + 本机专业反应模型（推荐，最省事）
 
-1. **本机**安装依赖并启动服务（首次会下载/加载模型，之后用缓存）：
+**电脑开机后双击一次 `keep_t5_online.bat` 即可。**  
+脚本会：启动本机服务 → 开公网隧道 → **自动把新地址推到 GitHub 发现链接**。  
+Cloud **不用每次改 URL**；页面刷新也会自动连上（电脑开着、两个黑窗口别关）。
 
-```powershell
-cd Davina-ChemAgent
-.\.venv\Scripts\pip install -r requirements-t5-server.txt
-.\.venv\Scripts\pip install torch transformers sentencepiece
-set REACTIONT5_API_TOKEN=换成一串随机密码
-.\start_reactiont5_server.bat
-```
-
-2. **另开终端**暴露公网（任选）：
-
-```powershell
-# Cloudflare 快速隧道（免费，无需注册也可试）
-cloudflared tunnel --url http://127.0.0.1:8765
-
-# 或 ngrok
-ngrok http 8765
-```
-
-3. 把隧道给出的 `https://....` 填进 **Streamlit Cloud → Secrets**（或本地侧栏）：
+首次只需在 Cloud Secrets 配一次 Token（与本机 `.reactiont5_token` 相同）：
 
 ```toml
-REACTIONT5_API_URL = "https://xxxx.trycloudflare.com"
-REACTIONT5_API_TOKEN = "与本机一致的随机密码"
+REACTIONT5_API_TOKEN = "与本机一致"
+# URL 可省略：默认读仓库 static/t5_endpoint.json
 ```
 
-### 电脑重启后怎么恢复公网？
+依赖：本机已装 `cloudflared`，且 `git push` 能推到本仓库。
 
-双击运行 **`restore_t5_public.bat`**，它会：
+### 电脑重启后
 
-1. 启动本机推理服务（8765）  
-2. 若已安装 `cloudflared`，自动打开隧道窗口  
-3. 提示你把新的 `https://...` 更新到 Cloud Secrets  
-
-免费 quick tunnel **每次重启公网地址都会变**，所以 Secrets 里的 `REACTIONT5_API_URL` 必须改成新地址（Token 不变）。
-
-```toml
-REACTIONT5_API_URL = "https://新的隧道地址"
-REACTIONT5_API_TOKEN = "与 .reactiont5_token 一致"
-```
-
-Cloud 默认「自动」：能连上就用你家电脑上的专业反应模型，连不上再用大模型；访客也可在侧栏填自己的 OpenAI 兼容 Key。
-
-想少改 URL：配置 Cloudflare **Named Tunnel + 固定域名**。
+再双击 **`keep_t5_online.bat`** 一次就行，不必改 Cloud Secrets。
 
 ### 仅部署 Streamlit 壳
 
