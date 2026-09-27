@@ -256,32 +256,49 @@ def resolve_reactiont5_base_url(*, discovery_timeout: float = 8.0) -> str:
     if direct:
         return direct
 
-    discovery = (
+    primary = (
         os.getenv("REACTIONT5_DISCOVERY_URL")
-        or "https://raw.githubusercontent.com/Davina-Dhh/Davina-ChemAgent/main/static/t5_endpoint.json"
+        or "https://cdn.jsdelivr.net/gh/Davina-Dhh/Davina-ChemAgent@main/static/t5_endpoint.json"
     ).strip()
-    if not discovery:
-        return ""
-
-    url = discovery
-    if "raw.githubusercontent.com" in discovery and "?" not in discovery:
-        url = f"{discovery}?t={int(time.time())}"
-    try:
-        req = urllib.request.Request(
-            url,
-            headers={
-                "Cache-Control": "no-cache",
-                "Pragma": "no-cache",
-                "User-Agent": "ChemAgent-ReactionT5-Discovery/1.0",
-            },
+    # raw.githubusercontent.com 在部分网络会被强缓存成旧空文件，故作备用
+    candidates = [
+        u
+        for u in (
+            primary,
+            "https://cdn.jsdelivr.net/gh/Davina-Dhh/Davina-ChemAgent@main/static/t5_endpoint.json",
+            "https://raw.githubusercontent.com/Davina-Dhh/Davina-ChemAgent/main/static/t5_endpoint.json",
+            "https://api.github.com/repos/Davina-Dhh/Davina-ChemAgent/contents/static/t5_endpoint.json?ref=main",
         )
-        with urllib.request.urlopen(req, timeout=float(discovery_timeout)) as resp:
-            data = json.loads(resp.read().decode("utf-8", errors="replace"))
-        base = (data.get("url") or "").strip().rstrip("/")
-        if base.startswith("http"):
-            return base
-    except Exception:
-        return ""
+        if u
+    ]
+    # 去重且保序
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for u in candidates:
+        if u not in seen:
+            seen.add(u)
+            ordered.append(u)
+
+    for discovery in ordered:
+        url = discovery
+        if "?" not in url:
+            url = f"{url}?t={int(time.time())}"
+        headers = {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+            "User-Agent": "ChemAgent-ReactionT5-Discovery/1.0",
+        }
+        if "api.github.com" in discovery:
+            headers["Accept"] = "application/vnd.github.raw"
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=float(discovery_timeout)) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+            base = (data.get("url") or "").strip().rstrip("/")
+            if base.startswith("http"):
+                return base
+        except Exception:
+            continue
     return ""
 
 

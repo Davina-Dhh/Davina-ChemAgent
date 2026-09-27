@@ -16,8 +16,8 @@ ENDPOINT = ROOT / "static" / "t5_endpoint.json"
 
 # Streamlit Cloud / 代码里默认用的发现地址（固定，只配一次）
 DEFAULT_DISCOVERY = (
-    "https://raw.githubusercontent.com/Davina-Dhh/Davina-ChemAgent/"
-    "main/static/t5_endpoint.json"
+    "https://cdn.jsdelivr.net/gh/Davina-Dhh/Davina-ChemAgent@main/"
+    "static/t5_endpoint.json"
 )
 
 
