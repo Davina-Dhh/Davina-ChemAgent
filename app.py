@@ -3485,54 +3485,73 @@ def page_protein():
                     else:
                         st.caption("未检测到 ≤3.5 Å 的 N/O/S 极性接触（仍可看 4 Å 残基）。")
 
-                    # 已渲染 PNG 则展示
-                    f1 = Path(viz.get("fig1_png") or "")
-                    f2 = Path(viz.get("fig2_png") or "")
-                    eng = (viz.get("render") or {}).get("engine") or ""
-                    is_pymol = eng in ("pymol2", "cached") or bool(
-                        viz.get("pymol_embedded")
+                    # 已渲染 PNG 则展示（按钮出图后强制用最新路径）
+                    _force = st.session_state.get("_dock_render_force") or {}
+                    f1 = Path(
+                        _force.get("fig1_png")
+                        or viz.get("fig1_png")
+                        or Path(dock.get("work_dir") or ".") / "fig1_overview.png"
                     )
-                    # 若还没有合格图且内嵌 PyMOL 可用 → 提示点按钮，勿抢先画示意图
+                    f2 = Path(
+                        _force.get("fig2_png")
+                        or viz.get("fig2_png")
+                        or Path(dock.get("work_dir") or ".") / "fig2_pocket.png"
+                    )
+                    eng = _force.get("engine") or (
+                        (viz.get("render") or {}).get("engine") or ""
+                    )
+                    is_pymol = eng in ("pymol2", "cached") or bool(
+                        viz.get("pymol_embedded") and eng != "fallback"
+                    )
+                    # 无 PyMOL 出版图时自动补分析示意图（Cloud 常态）
+                    _work_png = Path(dock.get("work_dir") or ".")
                     if (
-                        (not f1.is_file() or not f2.is_file() or f1.stat().st_size < 5000)
-                        and not is_pymol
+                        (not f1.is_file() or not f2.is_file() or f1.stat().st_size < 2000)
+                        and eng != "pymol2"
                     ):
                         try:
-                            _dv.render_fallback_pngs(
-                                Path(dock.get("work_dir") or "."),
+                            _paths0 = _dv.render_fallback_pngs(
+                                _work_png,
                                 contacts=contacts,
                                 affinity=best,
                                 box=box,
                                 title=prev_rec,
                             )
+                            f1 = Path(_paths0.get("fig1_png") or (_work_png / "fig1_overview.png"))
+                            f2 = Path(_paths0.get("fig2_png") or (_work_png / "fig2_pocket.png"))
+                            if eng != "pymol2":
+                                eng = eng or "fallback"
                         except Exception:  # noqa: BLE001
                             pass
 
                     if f1.is_file() or f2.is_file():
-                        st.markdown("**出版图预览**")
-                        if (viz.get("render") or {}).get("fallback") and eng not in (
-                            "pymol2",
-                            "cached",
-                        ):
-                            st.caption(
-                                "当前为分析示意图。请点下方「渲染出 PNG」用内嵌 PyMOL 出 3D 射线追踪图。"
-                            )
-                        elif is_pymol or (
-                            f1.is_file() and f1.stat().st_size > 20000
+                        st.markdown("**出版图 / 分析图预览**")
+                        if eng in ("pymol2", "cached", "pymol_exe") or (
+                            is_pymol and f1.is_file() and f1.stat().st_size > 20000
                         ):
                             st.success(
-                                "已用**内嵌 PyMOL**（pymol-open-source）直接渲染，无需另装桌面版。"
+                                "已用**内嵌 PyMOL** 射线追踪渲染。"
+                            )
+                        else:
+                            st.caption(
+                                "当前为 **matplotlib 分析示意图**（残基/氢键表）。"
+                                "Cloud 无法装 PyMOL；本机 `pip install -r requirements-dock.txt` 可出 3D 射线图。"
                             )
                         ic1, ic2 = st.columns(2)
                         with ic1:
                             if f1.is_file():
-                                st.image(str(f1), caption="图1 全景 (fig1_overview.png)")
+                                st.image(
+                                    f1.read_bytes(),
+                                    caption="图1 (fig1_overview.png)",
+                                )
                         with ic2:
                             if f2.is_file():
                                 st.image(
-                                    str(f2),
-                                    caption="图2 关键残基 + 氢键键长 (fig2_pocket.png)",
+                                    f2.read_bytes(),
+                                    caption="图2 (fig2_pocket.png)",
                                 )
+                    else:
+                        st.warning("尚未生成 PNG。请点下方「渲染出 PNG」。")
 
                     # 页内 3D（py3Dmol）
                     try:
@@ -3571,17 +3590,33 @@ def page_protein():
 
                     b1, b2, b3, b4 = st.columns(4)
                     with b1:
+                        try:
+                            from cloud_env import is_streamlit_cloud as _cloud_render
+                        except Exception:
+                            _cloud_render = lambda: False  # type: ignore[assignment]
+                        _help_render = (
+                            "Cloud：生成分析示意图（无 PyMOL 射线追踪）。本机有 pymol-open-source 则出 3D 出版图。"
+                            if _cloud_render()
+                            else "优先内嵌 PyMOL 射线追踪；否则生成分析示意图。"
+                        )
                         if st.button(
                             "渲染出 PNG",
                             type="primary",
                             key="dock_pymol_render",
                             use_container_width=True,
-                            help="内嵌 PyMOL 直接跑脚本出图1/图2",
+                            help=_help_render,
                         ):
                             _dv_r = _load_dock_viz()
                             ok = False
+                            engine = ""
                             work_d = Path(dock.get("work_dir") or ".")
-                            with st.spinner("内嵌 PyMOL 射线追踪 fig1+fig2（约 1–3 分钟）…"):
+                            work_d.mkdir(parents=True, exist_ok=True)
+                            spin_msg = (
+                                "正在生成分析 PNG（Cloud 无 PyMOL，约数秒）…"
+                                if _cloud_render() or not _dv_r.has_embedded_pymol()
+                                else "内嵌 PyMOL 射线追踪 fig1+fig2（约 1–3 分钟）…"
+                            )
+                            with st.spinner(spin_msg):
                                 for fn in ("fig1_overview.png", "fig2_pocket.png"):
                                     fp = work_d / fn
                                     if fp.is_file():
@@ -3607,6 +3642,7 @@ def page_protein():
                                         dpi=300,
                                     )
                                     ok = bool(rr.get("ok"))
+                                    engine = "pymol2" if ok else ""
                                     if ok:
                                         b1k = (rr.get("bytes") or {}).get("fig1", 0)
                                         b2k = (rr.get("bytes") or {}).get("fig2", 0)
@@ -3617,18 +3653,50 @@ def page_protein():
                                         st.warning(
                                             rr.get("error") or "pymol2 渲染未完成"
                                         )
+                                if not ok and not _cloud_render():
+                                    batch = Path(viz.get("batch_pml") or "")
+                                    if batch.is_file():
+                                        rr2 = _dv_r.render_pymol_pngs(batch)
+                                        ok = bool(rr2.get("ok"))
+                                        if ok:
+                                            engine = "pymol_exe"
                                 if not ok:
-                                    rr2 = _dv_r.render_pymol_pngs(Path(viz["batch_pml"]))
-                                    ok = bool(rr2.get("ok"))
-                                if not ok:
-                                    _dv_r.render_fallback_pngs(
-                                        work_d,
-                                        contacts=contacts,
-                                        affinity=best,
-                                        box=box,
-                                        title=prev_rec,
-                                    )
-                                    st.info("已生成分析 PNG 兜底图")
+                                    try:
+                                        paths = _dv_r.render_fallback_pngs(
+                                            work_d,
+                                            contacts=contacts,
+                                            affinity=best,
+                                            box=box,
+                                            title=prev_rec,
+                                        )
+                                        ok = bool(
+                                            Path(paths.get("fig1_png") or "").is_file()
+                                            or (work_d / "fig1_overview.png").is_file()
+                                        )
+                                        engine = "fallback"
+                                        if ok:
+                                            st.info(
+                                                "已生成分析示意图（非 PyMOL 射线图）。"
+                                                "向上滚动可看预览；Cloud 无法装 PyMOL。"
+                                            )
+                                        else:
+                                            st.error("分析图写入失败：未找到 PNG 文件。")
+                                    except Exception as exc_fb:  # noqa: BLE001
+                                        st.error(f"出图失败：{exc_fb}")
+                                        paths = {}
+                                else:
+                                    paths = {
+                                        "fig1_png": str(work_d / "fig1_overview.png"),
+                                        "fig2_png": str(work_d / "fig2_pocket.png"),
+                                    }
+                                if ok:
+                                    st.session_state["_dock_render_force"] = {
+                                        "fig1_png": paths.get("fig1_png")
+                                        or str(work_d / "fig1_overview.png"),
+                                        "fig2_png": paths.get("fig2_png")
+                                        or str(work_d / "fig2_pocket.png"),
+                                        "engine": engine or "fallback",
+                                    }
                             st.rerun()
                     with b2:
                         if st.button(
