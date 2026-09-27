@@ -1,0 +1,17 @@
+{
+  "routes": [
+    {
+      "name": "Route A",
+      "note": "oxidation",
+      "sequence": ["CCO", "CC=O", "CC(=O)O"]
+    },
+    {
+      "name": "Route B",
+      "note": "ester route",
+      "reactions": [
+        "CCO.CC(=O)O>>CCOC(=O)C",
+        "CCOC(=O)C.O>>CC(=O)O.CCO"
+      ]
+    }
+  ]
+}

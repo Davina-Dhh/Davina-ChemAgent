@@ -1,0 +1,6 @@
+# ChemCrow Lab 对接可视化依赖（项目 .venv）
+pymol-open-source>=3.0.0
+py3Dmol>=2.0.0
+matplotlib>=3.7.0
+meeko>=0.5.0
+rdkit>=2023.9.1

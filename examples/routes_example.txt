@@ -1,0 +1,5 @@
+# Route A | alcohol oxidation
+CCO -> CC=O -> CC(=O)O
+
+# Route B | via acetate then hydrolysis
+CCO -> CCOC(=O)C -> CC(=O)O
