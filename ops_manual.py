@@ -134,20 +134,26 @@ def _manual_body_html() -> str:
 
 def inject_ops_manual() -> None:
     """向父页面注入浮动手册（跨模块、最高层、可拖拽）。"""
-    if not _INJECT_FILE.is_file():
-        st.warning("操作手册资源缺失：static/ops_manual_inject.html")
-        return
+    try:
+        if not _INJECT_FILE.is_file():
+            st.warning("操作手册资源缺失：static/ops_manual_inject.html")
+            return
 
-    html = _INJECT_FILE.read_text(encoding="utf-8")
-    html = html.replace("__VER__", _MANUAL_VERSION)
-    html = html.replace("__BODY__", json.dumps(_manual_body_html(), ensure_ascii=False))
+        html = _INJECT_FILE.read_text(encoding="utf-8")
+        html = html.replace("__VER__", _MANUAL_VERSION)
+        html = html.replace(
+            "__BODY__", json.dumps(_manual_body_html(), ensure_ascii=False)
+        )
 
-    st.markdown(
-        '<style>div.element-container:has(iframe[height="0"]){'
-        "position:fixed!important;width:0!important;height:0!important;"
-        "margin:0!important;padding:0!important;opacity:0!important;"
-        "pointer-events:none!important;overflow:hidden!important;}"
-        "</style>",
-        unsafe_allow_html=True,
-    )
-    components.html(html, height=0, scrolling=False)
+        st.markdown(
+            '<style>div.element-container:has(iframe[height="0"]){'
+            "position:fixed!important;width:0!important;height:0!important;"
+            "margin:0!important;padding:0!important;opacity:0!important;"
+            "pointer-events:none!important;overflow:hidden!important;}"
+            "</style>",
+            unsafe_allow_html=True,
+        )
+        components.html(html, height=0, scrolling=False)
+    except Exception as exc:  # noqa: BLE001
+        # 绝不因手册拖垮整站；本地旧缓存/异常时仅提示
+        st.caption(f"操作手册未加载（{_MANUAL_VERSION}）：{exc}")
