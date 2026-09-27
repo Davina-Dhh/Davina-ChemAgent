@@ -52,6 +52,7 @@ _MASCOT_B64 = (
     or _asset_b64("chem_bunny_scifi.png")
     or _asset_b64("chemist_mascot.png")
 )
+_STRIP_B64 = _asset_b64("chem_hud_strip.png") or _asset_b64("chem_lab_atmosphere.png")
 _FAVICON_B64 = _asset_b64("chem_favicon.png") or _asset_b64("chem_logo_mark.png")
 
 # 冰蓝科幻 HUD · 动态增强版
@@ -382,15 +383,124 @@ st.markdown(
   .chem-metric:nth-child(2) {{ animation-delay: 0.8s; }}
   .chem-metric:nth-child(3) {{ animation-delay: 1.6s; }}
 
+  /* —— 装饰六边形 / HUD 条 —— */
+  .chem-hex-field {{
+    position: absolute;
+    inset: auto -8% -18% auto;
+    width: 180px; height: 180px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(57,198,255,0.35), transparent 45%),
+      radial-gradient(circle at 70% 65%, rgba(30,138,216,0.22), transparent 50%);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='white' d='M50 4 L90 27 V73 L50 96 L10 73 V27 Z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='white' d='M50 4 L90 27 V73 L50 96 L10 73 V27 Z'/%3E%3C/svg%3E");
+    animation: chem-spin 28s linear infinite;
+  }}
+  .chem-strip {{
+    position: relative;
+    height: 72px;
+    margin: 0 0 0.85rem;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background-color: #D7ECF9;
+    background-image:
+      linear-gradient(90deg, rgba(248,252,255,0.88), rgba(232,244,252,0.55) 40%, rgba(255,255,255,0.2)),
+      url("data:image/png;base64,{_STRIP_B64}");
+    background-size: cover;
+    background-position: center right;
+    box-shadow: 0 10px 24px rgba(14,79,138,0.07);
+  }}
+  .chem-strip::after {{
+    content: "MOLECULE LATTICE  ·  SPECTRAL GRID  ·  DOCKING FIELD";
+    position: absolute;
+    left: 1rem; bottom: 0.7rem;
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    color: rgba(11,79,138,0.75);
+  }}
+  .chem-strip-beam {{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(57,198,255,0.18) 50%, transparent 60%);
+    background-size: 220% 100%;
+    animation: chem-scan 6s linear infinite;
+    pointer-events: none;
+  }}
+
+  /* —— 功能模块四宫格 —— */
+  .chem-modules {{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.65rem;
+    margin: 0 0 1rem;
+  }}
+  .chem-mod {{
+    position: relative;
+    padding: 0.85rem 0.75rem 0.8rem;
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.95), rgba(232,245,255,0.82));
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 22px rgba(14,79,138,0.06);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    animation: chem-rise 0.55s ease-out both;
+  }}
+  .chem-mod:nth-child(2) {{ animation-delay: 0.06s; }}
+  .chem-mod:nth-child(3) {{ animation-delay: 0.12s; }}
+  .chem-mod:nth-child(4) {{ animation-delay: 0.18s; }}
+  .chem-mod:hover {{
+    transform: translateY(-3px);
+    border-color: rgba(57,198,255,0.5);
+    box-shadow: 0 14px 28px rgba(14,79,138,0.12), 0 0 18px rgba(57,198,255,0.15);
+  }}
+  .chem-mod::before {{
+    content: "";
+    position: absolute;
+    top: 0; left: 12%; right: 12%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.8;
+  }}
+  .chem-mod-ico {{
+    width: 42px; height: 42px;
+    margin-bottom: 0.55rem;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(145deg, #EAF6FF, #C9E8FA);
+    border: 1px solid rgba(57,198,255,0.35);
+    box-shadow: 0 0 14px rgba(57,198,255,0.15);
+  }}
+  .chem-mod-ico svg {{ width: 24px; height: 24px; }}
+  .chem-mod strong {{
+    display: block;
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--deep);
+    margin-bottom: 0.25rem;
+  }}
+  .chem-mod span {{
+    display: block;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    font-weight: 500;
+  }}
+
   /* —— 系统面板 —— */
   .chem-welcome {{
     position: relative;
     display: grid;
-    grid-template-columns: 110px 1fr;
-    gap: 1.05rem;
+    grid-template-columns: 96px 1fr;
+    gap: 0.95rem;
     align-items: center;
     margin: 0 0 1rem;
-    padding: 1.05rem 1.2rem;
+    padding: 1rem 1.1rem;
     background: var(--panel);
     backdrop-filter: blur(12px);
     border: 1px solid var(--line);
@@ -408,8 +518,8 @@ st.markdown(
     box-shadow: 0 0 12px rgba(57,198,255,0.45);
   }}
   .chem-welcome-art {{
-    width: 96px;
-    height: 96px;
+    width: 84px;
+    height: 84px;
     border-radius: 12px;
     overflow: hidden;
     background: linear-gradient(160deg, #F4FAFF, #CDE7FA);
@@ -426,35 +536,35 @@ st.markdown(
     margin: 0 0 0.3rem !important;
     font-family: "Orbitron", sans-serif !important;
     font-weight: 600 !important;
-    font-size: 0.98rem !important;
-    letter-spacing: 0.06em !important;
+    font-size: 0.92rem !important;
+    letter-spacing: 0.05em !important;
     text-transform: uppercase;
     color: var(--deep) !important;
   }}
   .chem-welcome p {{
     margin: 0;
     color: var(--ink-soft);
-    font-size: 0.9rem;
-    line-height: 1.55;
+    font-size: 0.88rem;
+    line-height: 1.5;
     font-weight: 500;
   }}
   .chem-steps {{
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
-    margin-top: 0.7rem;
+    margin-top: 0.65rem;
   }}
   .chem-step {{
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.28rem 0.65rem;
+    gap: 0.35rem;
+    padding: 0.26rem 0.6rem;
     border-radius: 6px;
     background: rgba(14,79,138,0.05);
     color: var(--deep);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     border: 1px solid rgba(30,138,216,0.2);
   }}
   .chem-step i {{
@@ -466,7 +576,7 @@ st.markdown(
     color: #fff;
     font-style: normal;
     font-family: "Orbitron", sans-serif;
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     font-weight: 700;
   }}
 
@@ -529,14 +639,6 @@ st.markdown(
     100% {{ box-shadow: 0 0 0 0 rgba(57,198,255,0); }}
   }}
 
-  @media (max-width: 820px) {{
-    .chem-top {{ grid-template-columns: 1fr; text-align: center; }}
-    .chem-top-mascot-stage {{ justify-self: center; width: 180px; }}
-    .chem-welcome {{ grid-template-columns: 1fr; text-align: center; justify-items: center; padding-left: 1.2rem; }}
-    .chem-welcome::before {{ display: none; }}
-    .chem-steps, .chem-metric-row {{ justify-content: center; }}
-  }}
-
   /* —— 导航：精密条 —— */
   div[role="radiogroup"] {{
     gap: 0.25rem !important;
@@ -547,6 +649,7 @@ st.markdown(
     border: 1px solid var(--line);
     box-shadow: 0 8px 22px rgba(14,79,138,0.06);
     justify-content: center;
+    flex-wrap: wrap !important;
     margin-bottom: 0.4rem;
   }}
   div[role="radiogroup"] label {{
@@ -567,6 +670,114 @@ st.markdown(
     background: linear-gradient(135deg, #1E8AD8, #0B4F8A) !important;
     color: #fff !important;
     box-shadow: 0 0 16px rgba(57,198,255,0.35);
+  }}
+
+  /* —— 平板 / 手机 —— */
+  @media (max-width: 900px) {{
+    .chem-modules {{ grid-template-columns: repeat(2, 1fr); }}
+  }}
+  @media (max-width: 820px) {{
+    .block-container {{
+      padding-left: 0.85rem !important;
+      padding-right: 0.85rem !important;
+      padding-top: 0.55rem !important;
+    }}
+    /* 手机端双栏改单栏堆叠，避免挤扁 */
+    div[data-testid="stHorizontalBlock"] {{
+      flex-wrap: wrap !important;
+      gap: 0.35rem !important;
+    }}
+    div[data-testid="stHorizontalBlock"] > div {{
+      min-width: min(100%, 280px) !important;
+      flex: 1 1 100% !important;
+    }}
+    .chem-top {{
+      grid-template-columns: 1fr;
+      text-align: left;
+      padding: 1rem 1rem 1.05rem;
+      gap: 0.75rem;
+    }}
+    .chem-top-title {{ font-size: 1.45rem; letter-spacing: 0; }}
+    .chem-top-sub {{ font-size: 0.86rem; max-width: none; }}
+    .chem-kicker {{ font-size: 0.58rem; letter-spacing: 0.14em; }}
+    .chem-top-mascot-stage {{
+      justify-self: center;
+      width: 132px;
+      order: -1;
+      margin: 0 auto 0.15rem;
+    }}
+    .chem-ring, .chem-ring-2, .chem-orb, .chem-hex-field, .chem-fx-dots {{
+      display: none !important;
+    }}
+    .chem-top-mascot-wrap {{
+      width: 100%;
+      border-radius: 14px;
+      animation: none;
+      box-shadow: 0 8px 20px rgba(14,79,138,0.12);
+    }}
+    .chem-top-mascot-wrap::after {{ display: none; }}
+    .chem-metric {{ font-size: 0.55rem; padding: 0.28rem 0.5rem; }}
+    .chem-strip {{ height: 56px; margin-bottom: 0.7rem; }}
+    .chem-strip::after {{ font-size: 0.5rem; letter-spacing: 0.1em; left: 0.75rem; bottom: 0.55rem; }}
+    .chem-modules {{
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }}
+    .chem-mod {{ padding: 0.7rem 0.65rem; }}
+    .chem-mod strong {{ font-size: 0.66rem; }}
+    .chem-mod span {{ font-size: 0.7rem; }}
+    .chem-mod-ico {{ width: 36px; height: 36px; }}
+    .chem-mod-ico svg {{ width: 20px; height: 20px; }}
+    .chem-welcome {{
+      grid-template-columns: 64px 1fr;
+      gap: 0.7rem;
+      padding: 0.8rem 0.85rem 0.8rem 1rem;
+      align-items: start;
+    }}
+    .chem-welcome-art {{ width: 64px; height: 64px; }}
+    .chem-welcome h3 {{ font-size: 0.78rem !important; letter-spacing: 0.03em !important; }}
+    .chem-welcome p {{ font-size: 0.8rem; }}
+    .chem-steps {{ gap: 0.3rem; }}
+    .chem-step {{ font-size: 0.65rem; padding: 0.22rem 0.45rem; }}
+
+    div[role="radiogroup"] {{
+      justify-content: flex-start !important;
+      gap: 0.2rem !important;
+      padding: 0.3rem !important;
+      border-radius: 12px;
+      overflow-x: auto;
+      flex-wrap: nowrap !important;
+      -webkit-overflow-scrolling: touch;
+    }}
+    div[role="radiogroup"] label {{
+      padding: 0.38rem 0.65rem !important;
+      font-size: 0.78rem !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+    }}
+
+    .stButton > button,
+    .stDownloadButton > button {{
+      min-height: 2.45rem !important;
+      font-size: 0.88rem !important;
+    }}
+    section[data-testid="stSidebar"] .chem-side-avatar {{
+      width: 72px; height: 72px;
+    }}
+  }}
+  @media (max-width: 420px) {{
+    .chem-modules {{ grid-template-columns: 1fr 1fr; }}
+    .chem-top-title {{ font-size: 1.28rem; }}
+    .chem-metric-row {{ gap: 0.3rem; }}
+    .chem-welcome {{ grid-template-columns: 1fr; text-align: left; }}
+    .chem-welcome-art {{ width: 56px; height: 56px; }}
+  }}
+  @media (prefers-reduced-motion: reduce) {{
+    .stApp, .chem-top::before, .chem-ring, .chem-orb, .chem-top-mascot-wrap,
+    .chem-top-title span, .chem-metric, .chem-strip-beam,
+    .stButton > button[kind="primary"] {{
+      animation: none !important;
+    }}
   }}
 
   /* —— 产物面板 —— */
@@ -756,11 +967,17 @@ def _chem_hero_html() -> str:
             f'<img alt="Female bunny chemist" '
             f'src="data:image/png;base64,{_MASCOT_B64}" />'
         )
+    # 内联 SVG：分子 / 烧瓶 / DNA / 原子（不依赖额外切图）
+    ico_mol = """<svg viewBox="0 0 24 24" fill="none" stroke="#1E8AD8" stroke-width="1.6"><circle cx="6" cy="12" r="2.2" fill="#39C6FF"/><circle cx="18" cy="6" r="2.2" fill="#7CC8F0"/><circle cx="18" cy="18" r="2.2" fill="#0B4F8A"/><path d="M8 12h8M16.5 7.2l-7 3.6M16.5 16.8l-7-3.6" stroke-linecap="round"/></svg>"""
+    ico_flask = """<svg viewBox="0 0 24 24" fill="none" stroke="#1E8AD8" stroke-width="1.6"><path d="M9 3h6M10 3v5l-4.5 9.2A2.5 2.5 0 0 0 7.8 21h8.4a2.5 2.5 0 0 0 2.3-3.8L14 8V3" stroke-linejoin="round"/><path d="M8.2 14h7.6" stroke="#39C6FF"/><circle cx="10" cy="16.5" r="0.8" fill="#39C6FF" stroke="none"/><circle cx="13.5" cy="17.5" r="0.6" fill="#7CC8F0" stroke="none"/></svg>"""
+    ico_dna = """<svg viewBox="0 0 24 24" fill="none" stroke="#1E8AD8" stroke-width="1.6"><path d="M7 4c4 3 6 3 10 0M7 20c4-3 6-3 10 0M7 8c4 2.2 6 2.2 10 0M7 16c4-2.2 6-2.2 10 0" stroke-linecap="round"/><path d="M9 6.5h6M9 12h6M9 17.5h6" stroke="#39C6FF" stroke-width="1.2"/></svg>"""
+    ico_atom = """<svg viewBox="0 0 24 24" fill="none" stroke="#1E8AD8" stroke-width="1.5"><circle cx="12" cy="12" r="2.2" fill="#39C6FF" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.8" transform="rotate(-60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.8"/></svg>"""
     return f"""
 <div class="chem-top">
   <div class="chem-fx-dots" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span>
   </div>
+  <div class="chem-hex-field" aria-hidden="true"></div>
   <div style="position:relative;z-index:1;">
     <p class="chem-kicker">ChemOps // Neural Lab Console</p>
     <p class="chem-top-title">Davina <span>ChemAgent</span></p>
@@ -782,11 +999,18 @@ def _chem_hero_html() -> str:
     <div class="chem-top-mascot-wrap">{mascot}</div>
   </div>
 </div>
+<div class="chem-strip" aria-hidden="true"><div class="chem-strip-beam"></div></div>
+<div class="chem-modules">
+  <div class="chem-mod"><div class="chem-mod-ico">{ico_flask}</div><strong>RXN ENGINE</strong><span>反应预测与条件推演</span></div>
+  <div class="chem-mod"><div class="chem-mod-ico">{ico_mol}</div><strong>MOL DATABASE</strong><span>PubChem / ChEMBL 检索</span></div>
+  <div class="chem-mod"><div class="chem-mod-ico">{ico_atom}</div><strong>DOCKING</strong><span>Vina 口袋与结合能</span></div>
+  <div class="chem-mod"><div class="chem-mod-ico">{ico_dna}</div><strong>NMR / LIT</strong><span>光谱估计与文献链路</span></div>
+</div>
 <div class="chem-welcome">
   <div class="chem-welcome-art">{mascot}</div>
   <div>
     <h3>SYSTEM READY · 女兔实验员在线</h3>
-    <p>配置原料与反应参数后启动预测引擎；也可切换至对接模块运行 Vina，或在分子库执行结构检索。</p>
+    <p>配置原料与参数后启动引擎；也可切到对接跑 Vina，或在分子库查结构。</p>
     <div class="chem-steps">
       <span class="chem-step"><i>01</i>解析原料</span>
       <span class="chem-step"><i>02</i>引擎推演</span>
