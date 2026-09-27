@@ -1,5 +1,5 @@
 {
-  "url": "",
-  "updated_at": "",
-  "note": "由 keep_t5_online.bat 自动更新；Cloud 通过发现链接读取，无需改 Secrets"
+  "url": "https://jose-forecasts-cord-organisation.trycloudflare.com",
+  "updated_at": "2026-09-27T13:52:34Z",
+  "note": "auto-published by keep_t5_online / publish_t5_endpoint.py"
 }
