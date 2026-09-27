@@ -33,7 +33,7 @@ OUT.mkdir(exist_ok=True)
 
 st.set_page_config(
     page_title="Davina ChemAgent",
-    page_icon="assets/chem_fox_mascot.png",
+    page_icon="assets/chem_favicon.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -46,9 +46,10 @@ def _asset_b64(name: str) -> str:
     return base64.b64encode(p.read_bytes()).decode("ascii")
 
 
-_FOX_B64 = _asset_b64("chem_fox_mascot.png")
-_ATMO_B64 = _asset_b64("chem_lab_atmosphere.png")
-_LOGO_B64 = _asset_b64("chem_logo_mark.png")
+# 依赖仓库内 assets/；未提交时 Cloud 端为空，英雄区会隐藏吉祥物
+_MASCOT_B64 = _asset_b64("chemist_mascot.png")
+_ATMO_B64 = _asset_b64("chem_lab_atmosphere.png") or _asset_b64("chem_banner_bg.png")
+_FAVICON_B64 = _asset_b64("chem_favicon.png") or _asset_b64("chem_logo_mark.png")
 
 # 蓝白清新 · 实验室质感主题
 st.markdown(
@@ -114,12 +115,12 @@ st.markdown(
     border-bottom: 1px solid var(--line);
   }}
   .chem-side-avatar {{
-    width: 86px;
-    height: 86px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
     object-fit: cover;
-    object-position: center 18%;
-    background: #fff;
+    object-position: center 12%;
+    background: linear-gradient(160deg, #FFFFFF 0%, #E8F4FC 100%);
     border: 3px solid rgba(255,255,255,0.95);
     box-shadow:
       0 0 0 1px rgba(42,123,191,0.18),
@@ -324,22 +325,104 @@ st.markdown(
     margin-bottom: 0.4rem;
   }}
 
-  /* —— 控件 —— */
-  .stButton > button {{
+  /* —— 按钮统一美化 —— */
+  .stButton > button,
+  .stDownloadButton > button,
+  div[data-testid="stFormSubmitButton"] > button,
+  button[data-testid="baseButton-primary"],
+  button[data-testid="baseButton-secondary"],
+  button[data-testid="baseButton-secondaryFormSubmit"],
+  button[kind="primary"],
+  button[kind="secondary"] {{
     border-radius: 12px !important;
-    font-weight: 560 !important;
-    letter-spacing: 0.01em;
-    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    font-family: "Sora", "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    letter-spacing: 0.015em !important;
+    min-height: 2.55rem !important;
+    padding: 0.45rem 1.05rem !important;
+    transition:
+      transform 0.16s ease,
+      box-shadow 0.16s ease,
+      background 0.16s ease,
+      border-color 0.16s ease,
+      filter 0.16s ease !important;
   }}
-  .stButton > button:hover {{
+
+  /* 次要 / 默认按钮：白底冰蓝描边 */
+  .stButton > button,
+  .stDownloadButton > button,
+  button[data-testid="baseButton-secondary"],
+  button[kind="secondary"] {{
+    background: linear-gradient(180deg, #FFFFFF 0%, #F3F9FD 100%) !important;
+    color: var(--deep) !important;
+    border: 1px solid rgba(42,123,191,0.28) !important;
+    box-shadow: 0 4px 12px rgba(15,61,110,0.06) !important;
+  }}
+  .stButton > button:hover,
+  .stDownloadButton > button:hover,
+  button[data-testid="baseButton-secondary"]:hover,
+  button[kind="secondary"]:hover {{
     transform: translateY(-1px);
+    background: linear-gradient(180deg, #F7FBFE 0%, #E7F3FB 100%) !important;
+    border-color: rgba(42,123,191,0.45) !important;
+    box-shadow: 0 8px 18px rgba(15,61,110,0.10) !important;
+    color: var(--deep) !important;
   }}
+  .stButton > button:active,
+  .stDownloadButton > button:active,
+  button[data-testid="baseButton-secondary"]:active,
+  button[kind="secondary"]:active {{
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(15,61,110,0.08) !important;
+  }}
+
+  /* 主按钮：蓝白渐变 */
   .stButton > button[kind="primary"],
-  button[data-testid="baseButton-primary"] {{
-    background: linear-gradient(165deg, #3E96D4 0%, #1F6BB0 100%) !important;
-    border: 1px solid rgba(15,61,110,0.12) !important;
+  .stDownloadButton > button[kind="primary"],
+  button[data-testid="baseButton-primary"],
+  button[kind="primary"],
+  div[data-testid="stFormSubmitButton"] > button {{
+    background: linear-gradient(165deg, #4AA8DE 0%, #2A7BBF 48%, #1A5F9E 100%) !important;
+    border: 1px solid rgba(15,61,110,0.10) !important;
     color: #fff !important;
-    box-shadow: 0 8px 18px rgba(31,107,176,0.28) !important;
+    box-shadow:
+      0 8px 20px rgba(42,123,191,0.32),
+      inset 0 1px 0 rgba(255,255,255,0.22) !important;
+  }}
+  .stButton > button[kind="primary"]:hover,
+  .stDownloadButton > button[kind="primary"]:hover,
+  button[data-testid="baseButton-primary"]:hover,
+  button[kind="primary"]:hover,
+  div[data-testid="stFormSubmitButton"] > button:hover {{
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+    box-shadow:
+      0 12px 26px rgba(42,123,191,0.38),
+      inset 0 1px 0 rgba(255,255,255,0.28) !important;
+    color: #fff !important;
+    border-color: rgba(15,61,110,0.14) !important;
+  }}
+  .stButton > button[kind="primary"]:active,
+  button[data-testid="baseButton-primary"]:active,
+  button[kind="primary"]:active {{
+    transform: translateY(0);
+    filter: brightness(0.98);
+  }}
+
+  /* 禁用态 */
+  .stButton > button:disabled,
+  .stDownloadButton > button:disabled,
+  button[disabled] {{
+    opacity: 0.55 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+  }}
+
+  /* 链接式小按钮 / 工具条更紧凑 */
+  div[data-testid="column"] .stButton > button {{
+    width: 100%;
   }}
 
   h1, h2, h3 {{ color: var(--deep) !important; }}
@@ -355,6 +438,14 @@ st.markdown(
     border-radius: 11px !important;
     border-color: var(--line) !important;
     background: rgba(255,255,255,0.88) !important;
+  }}
+
+  /* 滑块 / checkbox 偏蓝 */
+  div[data-testid="stSlider"] [role="slider"] {{
+    background-color: var(--blue) !important;
+  }}
+  .stCheckbox label span {{
+    color: var(--ink) !important;
   }}
 
   hr {{ border-color: var(--line) !important; }}
@@ -380,10 +471,10 @@ st.markdown(
 
 def _chem_hero_html() -> str:
     mascot = ""
-    if _FOX_B64:
+    if _MASCOT_B64:
         mascot = (
-            f'<img class="chem-mascot" alt="Arctic fox chemist" '
-            f'src="data:image/png;base64,{_FOX_B64}" />'
+            f'<img class="chem-mascot" alt="Chemist mascot" '
+            f'src="data:image/png;base64,{_MASCOT_B64}" />'
         )
     return f"""
 <div class="chem-hero">
@@ -401,10 +492,16 @@ def _chem_hero_html() -> str:
 
 def _chem_sidebar_brand_html() -> str:
     avatar = ""
-    if _FOX_B64:
+    if _MASCOT_B64:
         avatar = (
-            f'<img class="chem-side-avatar" alt="Fox chemist" '
-            f'src="data:image/png;base64,{_FOX_B64}" />'
+            f'<img class="chem-side-avatar" alt="Chemist mascot" '
+            f'src="data:image/png;base64,{_MASCOT_B64}" />'
+        )
+    elif _FAVICON_B64:
+        avatar = (
+            f'<img class="chem-side-avatar" alt="ChemAgent mark" '
+            f'src="data:image/png;base64,{_FAVICON_B64}" '
+            f'style="object-fit:contain;padding:10px;background:#fff;" />'
         )
     return f"""
 <div class="chem-side-brand">
@@ -413,7 +510,6 @@ def _chem_sidebar_brand_html() -> str:
   <p class="chem-side-sub">Lab Companion</p>
 </div>
 """
-
 
 def _sidebar_keys() -> None:
     # 1) 仓库内演示默认 Key（访客无需自填）
