@@ -398,45 +398,91 @@ st.markdown(
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='white' d='M50 4 L90 27 V73 L50 96 L10 73 V27 Z'/%3E%3C/svg%3E");
     animation: chem-spin 28s linear infinite;
   }}
+  /* —— 能力矩阵：标题条 + 四宫格 —— */
+  .chem-section {{
+    margin: 0 0 1rem;
+  }}
   .chem-strip {{
     position: relative;
-    height: 72px;
-    margin: 0 0 0.85rem;
+    min-height: 88px;
+    margin: 0 0 0.7rem;
+    padding: 1rem 1.15rem 0.95rem;
     border-radius: 14px;
     overflow: hidden;
-    border: 1px solid var(--line);
-    background-color: #D7ECF9;
+    border: 1px solid rgba(30,138,216,0.28);
+    background-color: #C5E4F7;
     background-image:
-      linear-gradient(90deg, rgba(248,252,255,0.88), rgba(232,244,252,0.55) 40%, rgba(255,255,255,0.2)),
+      linear-gradient(105deg, rgba(248,252,255,0.94) 0%, rgba(232,245,255,0.88) 42%, rgba(210,234,250,0.55) 100%),
       url("data:image/png;base64,{_STRIP_B64}");
     background-size: cover;
     background-position: center right;
-    box-shadow: 0 10px 24px rgba(14,79,138,0.07);
-  }}
-  .chem-strip::after {{
-    content: "MOLECULE LATTICE  ·  SPECTRAL GRID  ·  DOCKING FIELD";
-    position: absolute;
-    left: 1rem; bottom: 0.7rem;
-    font-family: "Orbitron", sans-serif;
-    font-size: 0.58rem;
-    letter-spacing: 0.16em;
-    color: rgba(11,79,138,0.75);
+    box-shadow: 0 12px 28px rgba(14,79,138,0.10);
   }}
   .chem-strip-beam {{
     position: absolute;
     inset: 0;
-    background: linear-gradient(105deg, transparent 40%, rgba(57,198,255,0.18) 50%, transparent 60%);
+    background: linear-gradient(105deg, transparent 40%, rgba(57,198,255,0.16) 50%, transparent 60%);
     background-size: 220% 100%;
     animation: chem-scan 6s linear infinite;
     pointer-events: none;
   }}
+  .chem-strip-inner {{
+    position: relative;
+    z-index: 1;
+    max-width: 34rem;
+  }}
+  .chem-strip-kicker {{
+    margin: 0 0 0.35rem;
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #1470B8;
+  }}
+  .chem-strip-title {{
+    margin: 0;
+    font-family: "Orbitron", "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+    letter-spacing: 0.04em;
+    color: #0A3D6E;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.65);
+    line-height: 1.25;
+  }}
+  .chem-strip-title em {{
+    font-style: normal;
+    color: #1E8AD8;
+  }}
+  .chem-strip-sub {{
+    margin: 0.4rem 0 0;
+    font-size: 0.84rem;
+    font-weight: 560;
+    color: #3A5F7E;
+    line-height: 1.45;
+  }}
+  .chem-strip-tags {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+  }}
+  .chem-strip-tags b {{
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 0.22rem 0.5rem;
+    border-radius: 5px;
+    color: #0B4F8A;
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(30,138,216,0.28);
+  }}
 
-  /* —— 功能模块四宫格 —— */
   .chem-modules {{
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 0.65rem;
-    margin: 0 0 1rem;
   }}
   .chem-mod {{
     position: relative;
@@ -479,17 +525,17 @@ st.markdown(
   .chem-mod strong {{
     display: block;
     font-family: "Orbitron", sans-serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    color: var(--deep);
-    margin-bottom: 0.25rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: #0A3D6E;
+    margin-bottom: 0.28rem;
   }}
   .chem-mod span {{
     display: block;
-    font-size: 0.75rem;
-    color: var(--ink-soft);
+    font-size: 0.78rem;
+    color: #4A6B86;
     line-height: 1.4;
-    font-weight: 500;
+    font-weight: 560;
   }}
 
   /* —— 系统面板 —— */
@@ -717,8 +763,14 @@ st.markdown(
     }}
     .chem-top-mascot-wrap::after {{ display: none; }}
     .chem-metric {{ font-size: 0.55rem; padding: 0.28rem 0.5rem; }}
-    .chem-strip {{ height: 56px; margin-bottom: 0.7rem; }}
-    .chem-strip::after {{ font-size: 0.5rem; letter-spacing: 0.1em; left: 0.75rem; bottom: 0.55rem; }}
+    .chem-strip {{
+      min-height: 0;
+      padding: 0.85rem 0.9rem;
+      margin-bottom: 0.55rem;
+    }}
+    .chem-strip-title {{ font-size: 1.05rem; }}
+    .chem-strip-sub {{ font-size: 0.78rem; }}
+    .chem-strip-kicker {{ font-size: 0.55rem; letter-spacing: 0.12em; }}
     .chem-modules {{
       grid-template-columns: repeat(2, 1fr);
       gap: 0.5rem;
@@ -999,13 +1051,25 @@ def _chem_hero_html() -> str:
     <div class="chem-top-mascot-wrap">{mascot}</div>
   </div>
 </div>
-<div class="chem-strip" aria-hidden="true"><div class="chem-strip-beam"></div></div>
-<div class="chem-modules">
-  <div class="chem-mod"><div class="chem-mod-ico">{ico_flask}</div><strong>RXN ENGINE</strong><span>反应预测与条件推演</span></div>
-  <div class="chem-mod"><div class="chem-mod-ico">{ico_mol}</div><strong>MOL DATABASE</strong><span>PubChem / ChEMBL 检索</span></div>
-  <div class="chem-mod"><div class="chem-mod-ico">{ico_atom}</div><strong>DOCKING</strong><span>Vina 口袋与结合能</span></div>
-  <div class="chem-mod"><div class="chem-mod-ico">{ico_dna}</div><strong>NMR / LIT</strong><span>光谱估计与文献链路</span></div>
-</div>
+<section class="chem-section">
+  <div class="chem-strip">
+    <div class="chem-strip-beam"></div>
+    <div class="chem-strip-inner">
+      <p class="chem-strip-kicker">Capability Matrix</p>
+      <p class="chem-strip-title">核心能力 <em>模块</em></p>
+      <p class="chem-strip-sub">从反应预测到蛋白对接，四条可切换的化学计算链路。</p>
+      <div class="chem-strip-tags">
+        <b>LATTICE</b><b>SPECTRAL</b><b>DOCKING</b><b>LITERATURE</b>
+      </div>
+    </div>
+  </div>
+  <div class="chem-modules">
+    <div class="chem-mod"><div class="chem-mod-ico">{ico_flask}</div><strong>RXN ENGINE</strong><span>反应预测与条件推演</span></div>
+    <div class="chem-mod"><div class="chem-mod-ico">{ico_mol}</div><strong>MOL DATABASE</strong><span>PubChem / ChEMBL 检索</span></div>
+    <div class="chem-mod"><div class="chem-mod-ico">{ico_atom}</div><strong>DOCKING</strong><span>Vina 口袋与结合能</span></div>
+    <div class="chem-mod"><div class="chem-mod-ico">{ico_dna}</div><strong>NMR / LIT</strong><span>光谱估计与文献链路</span></div>
+  </div>
+</section>
 <div class="chem-welcome">
   <div class="chem-welcome-art">{mascot}</div>
   <div>
