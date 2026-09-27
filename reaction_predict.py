@@ -504,12 +504,23 @@ def run_prediction(
     force_llm = product_engine == "llm"
     force_rxn = product_engine == "rxn"
     force_t5 = product_engine == "reactiont5"
+    has_t5_remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
+    try:
+        from cloud_env import reactiont5_allowed as _t5_ok
+
+        t5_local_ok = bool(_t5_ok())
+    except Exception:
+        t5_local_ok = True
+    # 自动：有远程 URL 或本机允许 → 优先 T5，失败再 RXN/大模型
+    try_t5 = force_t5 or (
+        product_engine == "auto" and not force_llm and (has_t5_remote or t5_local_ok)
+    )
 
     if force_rxn and not key:
         raise RuntimeError("已选择 IBM RXN，但未填写 RXN4CHEM_API_KEY。")
 
     # --- ReactionT5（远程 API 优先，否则本机）---
-    if force_t5:
+    if try_t5:
         try:
             from reactiont5_remote import MODEL_LABEL, predict_products
 
@@ -547,27 +558,19 @@ def run_prediction(
                 )
             if products:
                 remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
-                where = "远程服务" if remote else "本机"
+                where = "远程" if remote else "本机"
                 engine = (
-                    f"ReactionT5 {where}（{MODEL_LABEL}）"
+                    f"ReactionT5（{where}）"
                     f"+ LLM `{llm_model}`（条件/文献）"
                 )
                 product_backend = "reactiont5"
-                warnings.append(
-                    f"ReactionT5 0.2B {where}推理"
-                    + ("（经 REACTIONT5_API_URL）" if remote else "（本地缓存优先）")
-                    + "。"
-                )
+                warnings.append(f"产物由 ReactionT5（{where}）推理。")
             else:
                 raise RuntimeError("ReactionT5 未返回可解析的产物 SMILES")
         except Exception as exc:  # noqa: BLE001
-            # 下载/加载/远程失败时自动回退大模型，避免整次预测挂掉
-            warnings.append(
-                f"ReactionT5 不可用，已自动改用大模型 `{llm_model}`：{exc}"
-            )
+            warnings.append(f"ReactionT5 暂不可用，已改用备用引擎：{exc}")
             force_t5 = False
             products = []
-            # 不向上抛，继续走下面 LLM/RXN
 
     if use_rxn and not force_llm and not force_t5 and not products:
         try:

@@ -49,8 +49,19 @@ REACTIONT5_API_URL = "https://xxxx.trycloudflare.com"
 REACTIONT5_API_TOKEN = "与本机一致的随机密码"
 ```
 
-4. Cloud 页面选 **「ReactionT5 远程 API」** → 开始预测。  
-   **注意：本机电脑要开机，服务和隧道都要保持运行。**
+### 电脑重启后怎么恢复公网？
+
+免费 `cloudflared tunnel --url ...` **每次重启公网地址都会变**，所以要做三件事：
+
+1. 双击运行 `restore_t5_public.bat`（会拉起本机 8765 服务）
+2. **另开终端**执行：`cloudflared tunnel --url http://127.0.0.1:8765`
+3. 把新的 `https://...` 更新到 **Streamlit Cloud → Secrets** 的 `REACTIONT5_API_URL`
+
+（Token 可写在项目根目录 `.reactiont5_token`，与 Secrets 里 `REACTIONT5_API_TOKEN` 保持一致。）
+
+想避免每次改 URL：配置 Cloudflare **Named Tunnel + 固定域名**。
+
+Cloud 默认选「自动」：能连上 ReactionT5 就用它，连不上再用大模型；访客也可在侧栏填自己的 OpenAI 兼容 Key。
 
 ### 仅部署 Streamlit 壳
 

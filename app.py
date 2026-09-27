@@ -1162,11 +1162,11 @@ def _sidebar_keys() -> None:
         "Hugging Face Token（可选，一般可留空）",
         value="",
         type="password",
-        help="ReactionT5 0.2B 本机推理，公开权重通常不需要 Token；填错反而会 401",
+        help="ReactionT5 本机推理一般不需要 Token；填错反而会 401",
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.caption("ReactionT5 远程（Cloud 调用你家电脑）")
+    st.sidebar.caption("ReactionT5 远程服务（可选）")
     t5_url = st.sidebar.text_input(
         "ReactionT5 API URL",
         value=os.getenv("REACTIONT5_API_URL", ""),
@@ -2106,50 +2106,46 @@ def page_predict():
 
     st.markdown("### ②½ 预测引擎（可切换）")
     has_rxn = bool((os.getenv("RXN4CHEM_API_KEY") or "").strip())
+    has_t5_url = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
     engine_labels = {
-        "auto": "自动（有 RXN Key → RXN，否则大模型）",
-        "llm": f"大模型产物估计 — `{st.session_state.get('ui_llm_model', os.getenv('CHEMCROW_MODEL', 'agnes-2.5-flash'))}`",
-        "reactiont5": (
-            "ReactionT5 远程 API（Cloud → 你家电脑）"
-            if (os.getenv("REACTIONT5_API_URL") or "").strip()
-            else "ReactionT5 本机 0.2B（已缓存则离线；Cloud 请配远程 URL）"
-        ),
+        "auto": "自动（优先 ReactionT5 → 连不上再用大模型）",
+        "reactiont5": "仅 ReactionT5"
+        + (" · 远程已配置" if has_t5_url else " · 本机/需配置远程 URL"),
+        "llm": f"仅大模型 — `{st.session_state.get('ui_llm_model', os.getenv('CHEMCROW_MODEL', 'agnes-2.5-flash'))}`（可填自己的 Key）",
         "rxn": "IBM RXN（需 Key）" + ("" if has_rxn else " ⚠️ 未填 Key"),
     }
+    engine_keys = list(engine_labels.keys())
+    # 已配远程 T5 时默认「自动」，这样 Cloud 一打开就优先打你家电脑
+    default_engine = "auto"
     product_engine = st.radio(
         "产物预测后端",
-        options=list(engine_labels.keys()),
+        options=engine_keys,
         format_func=lambda k: engine_labels[k],
-        index=0,
+        index=engine_keys.index(default_engine),
         horizontal=False,
-        help="Cloud 上请用侧栏 REACTIONT5_API_URL 指向本机隧道；本机可直接跑本地缓存。",
+        key="product_engine_radio",
+        help="自动：先连 ReactionT5（本机或远程 URL）；失败则用侧栏大模型。可自行填写 OpenAI 兼容 Key。",
     )
-    if product_engine == "reactiont5":
+    if product_engine in ("auto", "reactiont5"):
         try:
             from reactiont5_remote import cache_status
 
             cs = cache_status()
             if cs.get("remote"):
-                st.success(
-                    f"将调用远程 ReactionT5：`{cs.get('remote_url')}`"
-                    "（请保持本机服务 + 隧道在线）"
-                )
+                st.caption(f"ReactionT5 远程：`{cs.get('remote_url')}`（连不上会自动改用大模型）")
             elif cs.get("ready"):
-                st.caption("ReactionT5：**本地缓存已就绪**，离线加载（不访问外网）。")
+                st.caption("ReactionT5：本地缓存已就绪。")
             else:
-                st.warning(
-                    "ReactionT5 本地缓存未就绪，将从 hf-mirror 下载 ~800MB。"
-                    "若在 Streamlit Cloud：请改用「远程 API」——本机启动 "
-                    "`start_reactiont5_server.bat` + cloudflared，并在 Secrets/"
-                    "侧栏填写 REACTIONT5_API_URL。"
+                st.caption(
+                    "ReactionT5：本地缓存未就绪（首次会下载）。"
+                    "Cloud 请在 Secrets/侧栏配置远程 API URL。"
                 )
         except Exception:
-            st.caption("ReactionT5：本机或远程 API。")
-        st.caption("失败会自动改用大模型；远程需本机电脑开机且隧道存活。")
-    else:
+            st.caption("ReactionT5：本机或远程。")
+    if product_engine == "llm":
         st.info(
-            f"大模型：**`{st.session_state.get('ui_llm_model', 'agnes-2.5-flash')}`**"
-            f"（侧边栏可改）。产物后端：**{engine_labels[product_engine]}**"
+            f"将仅用大模型 **`{st.session_state.get('ui_llm_model', 'agnes-2.5-flash')}`**。"
+            "可在侧栏填写自己的 OpenAI 兼容 Key / Base URL。"
         )
 
     o1, o2, o3 = st.columns(3)
@@ -2192,8 +2188,8 @@ def page_predict():
             reagents_smi = val if ok else ""
 
         spin_msg = (
-            "ReactionT5 本机推理中（首次下载可能较慢）…"
-            if product_engine == "reactiont5"
+            "ReactionT5 推理中…"
+            if product_engine in ("reactiont5", "auto")
             else "预测产物 / 投料 / 文献中…"
         )
         with st.spinner(spin_msg):
@@ -2217,15 +2213,15 @@ def page_predict():
                 )
             except Exception as exc:  # noqa: BLE001
                 st.error(f"预测失败：{exc}")
-                if product_engine == "reactiont5":
+                if product_engine in ("reactiont5", "auto"):
                     st.info(
-                        "ReactionT5 本机失败常见原因：首次下载中断、磁盘不足、缺依赖。"
-                        "可重试；或改选「大模型产物估计」。"
+                        "ReactionT5 失败常见原因：本机服务/隧道未开、URL 过期、首次下载中断。"
+                        "可重试；或改选「仅大模型」并填写自己的 Key。"
                     )
                 else:
                     st.info(
-                        "若频繁出现 JSON 解析错误：多半是 Agnes 输出被截断。"
-                        "可稍后重试，改选 ReactionT5，或填写 IBM RXN API Key；"
+                        "若频繁出现 JSON 解析错误：多半是模型输出被截断。"
+                        "可稍后重试，改选自动/ReactionT5，或填写 IBM RXN API Key；"
                         "也可先取消「检索相关文献」减轻请求。"
                     )
                 return

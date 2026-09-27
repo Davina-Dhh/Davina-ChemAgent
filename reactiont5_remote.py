@@ -1,7 +1,8 @@
-"""ReactionT5 正向预测：本机 0.2B 推理。
+"""ReactionT5 正向预测：本机推理或远程 HTTP API。
 
-模型 sagawa/ReactionT5v2-forward（约 0.2B / ~800MB）。
-已缓存时强制离线加载（不探测外网）；仅缺文件时才走 hf-mirror 下载。
+模型 sagawa/ReactionT5v2-forward。
+已缓存时强制离线加载；仅缺文件时才走 hf-mirror 下载。
+远程：设置 REACTIONT5_API_URL（+ 可选 TOKEN）。
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from contextlib import contextmanager
 from typing import Iterator, List, Optional, Tuple
 
 MODEL_ID = "sagawa/ReactionT5v2-forward"
-MODEL_LABEL = "ReactionT5v2-forward (0.2B)"
+MODEL_LABEL = "ReactionT5v2-forward"
 
 _lock = threading.Lock()
 _tokenizer = None
