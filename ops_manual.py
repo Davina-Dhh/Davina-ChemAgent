@@ -7,7 +7,7 @@ import json
 import streamlit as st
 import streamlit.components.v1 as components
 
-_MANUAL_VERSION = "v4"
+_MANUAL_VERSION = "v5"
 _ROOT_ID = "chem-ops-manual-root"
 _STYLE_ID = "chem-ops-manual-style"
 
@@ -303,7 +303,7 @@ def inject_ops_manual() -> None:
         font-size: 12px;
       }
     }
-  `.split("__ROOT_ID__").join(ROOT_ID);
+  `;
   doc.head.appendChild(style);
 
   const root = doc.createElement("div");
