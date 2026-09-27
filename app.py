@@ -48,13 +48,13 @@ def _asset_b64(name: str) -> str:
 
 # 依赖仓库内 assets/；未提交时 Cloud 端为空，英雄区会隐藏吉祥物
 _MASCOT_B64 = (
-    _asset_b64("chem_bunny_scifi.png")
-    or _asset_b64("chem_bunny_scientist.png")
+    _asset_b64("chem_bunny_female.png")
+    or _asset_b64("chem_bunny_scifi.png")
     or _asset_b64("chemist_mascot.png")
 )
 _FAVICON_B64 = _asset_b64("chem_favicon.png") or _asset_b64("chem_logo_mark.png")
 
-# 冰蓝科幻 HUD 主题（白底 + 精密蓝，偏高级感）
+# 冰蓝科幻 HUD · 动态增强版
 st.markdown(
     f"""
 <style>
@@ -78,14 +78,22 @@ st.markdown(
   }}
 
   .stApp {{
-    background-color: #F2F8FD;
+    background-color: #EAF4FC;
     background-image:
-      linear-gradient(rgba(30,138,216,0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30,138,216,0.045) 1px, transparent 1px),
-      radial-gradient(900px 420px at 12% -10%, rgba(57,198,255,0.22), transparent 58%),
-      radial-gradient(720px 380px at 92% 0%, rgba(14,79,138,0.10), transparent 55%),
-      linear-gradient(180deg, #F8FCFF 0%, #EEF5FB 50%, #F5FAFE 100%);
-    background-size: 48px 48px, 48px 48px, auto, auto, auto;
+      radial-gradient(1.5px 1.5px at 20px 30px, rgba(57,198,255,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 80px 70px, rgba(30,138,216,0.28), transparent),
+      radial-gradient(1.2px 1.2px at 140px 40px, rgba(57,198,255,0.22), transparent),
+      linear-gradient(rgba(30,138,216,0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,138,216,0.055) 1px, transparent 1px),
+      radial-gradient(1000px 480px at 8% -12%, rgba(57,198,255,0.32), transparent 58%),
+      radial-gradient(800px 420px at 96% 0%, rgba(14,79,138,0.14), transparent 55%),
+      radial-gradient(600px 360px at 50% 100%, rgba(57,198,255,0.10), transparent 60%),
+      linear-gradient(180deg, #F8FCFF 0%, #E8F4FC 45%, #F3F9FE 100%);
+    background-size:
+      160px 120px, 160px 120px, 160px 120px,
+      42px 42px, 42px 42px,
+      auto, auto, auto, auto;
+    animation: chem-aurora 14s ease-in-out infinite alternate;
   }}
 
   .block-container {{
@@ -242,7 +250,13 @@ st.markdown(
   }}
   .chem-top-title span {{
     color: var(--deep);
-    text-shadow: 0 0 18px rgba(57,198,255,0.25);
+    text-shadow: 0 0 18px rgba(57,198,255,0.35);
+    background: linear-gradient(120deg, #0B4F8A, #1E8AD8, #39C6FF, #1E8AD8);
+    background-size: 220% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: chem-shimmer 5s ease infinite;
   }}
   .chem-top-sub {{
     margin: 0.55rem 0 0;
@@ -252,35 +266,121 @@ st.markdown(
     font-weight: 500;
     line-height: 1.55;
   }}
-  .chem-top-mascot-wrap {{
+  .chem-top-mascot-stage {{
     position: relative;
     z-index: 1;
     justify-self: end;
-    width: min(200px, 34vw);
+    width: min(220px, 38vw);
     aspect-ratio: 1;
-    border-radius: 14px;
+    display: grid;
+    place-items: center;
+  }}
+  .chem-ring {{
+    position: absolute;
+    inset: 4%;
+    border-radius: 50%;
+    border: 1.5px dashed rgba(57,198,255,0.45);
+    animation: chem-spin 18s linear infinite;
+    pointer-events: none;
+  }}
+  .chem-ring-2 {{
+    inset: -2%;
+    border-style: solid;
+    border-color: transparent;
+    border-top-color: rgba(57,198,255,0.65);
+    border-bottom-color: rgba(30,138,216,0.35);
+    animation-duration: 10s;
+    animation-direction: reverse;
+  }}
+  .chem-orb {{
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, var(--cyan) 60%, transparent 75%);
+    box-shadow: 0 0 12px rgba(57,198,255,0.8);
+    animation: chem-orbit 7s linear infinite;
+  }}
+  .chem-orb.o2 {{ animation-duration: 9.5s; animation-delay: -2s; width: 7px; height: 7px; }}
+  .chem-orb.o3 {{ animation-duration: 12s; animation-delay: -4s; width: 6px; height: 6px; }}
+  .chem-top-mascot-wrap {{
+    position: relative;
+    width: 78%;
+    aspect-ratio: 1;
+    border-radius: 16px;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 30%, rgba(57,198,255,0.25), transparent 55%),
-      linear-gradient(160deg, #F7FCFF, #D4EAFB);
-    border: 1px solid rgba(57,198,255,0.45);
-    box-shadow: 0 0 28px rgba(57,198,255,0.18);
+      radial-gradient(circle at 50% 28%, rgba(57,198,255,0.35), transparent 55%),
+      linear-gradient(160deg, #F7FCFF, #C8E6FA);
+    border: 1px solid rgba(57,198,255,0.55);
+    box-shadow:
+      0 0 32px rgba(57,198,255,0.28),
+      0 12px 28px rgba(14,79,138,0.12);
     animation: chem-float 5s ease-in-out infinite;
   }}
   .chem-top-mascot-wrap::before {{
     content: "";
     position: absolute;
-    inset: 8px;
-    border: 1px solid rgba(57,198,255,0.25);
-    border-radius: 10px;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(57,198,255,0.12) 100%);
     pointer-events: none;
+    z-index: 1;
+  }}
+  .chem-top-mascot-wrap::after {{
+    content: "";
+    position: absolute;
+    left: 0; right: 0; height: 28%;
+    top: -30%;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.45), transparent);
+    animation: chem-vscan 3.8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 2;
   }}
   .chem-top-mascot-wrap img {{
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 16%;
+    object-position: center 14%;
   }}
+  .chem-fx-dots {{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }}
+  .chem-fx-dots span {{
+    position: absolute;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--cyan);
+    opacity: 0.35;
+    box-shadow: 0 0 8px rgba(57,198,255,0.7);
+    animation: chem-drift 8s ease-in-out infinite;
+  }}
+  .chem-fx-dots span:nth-child(1) {{ left: 12%; top: 28%; animation-delay: 0s; }}
+  .chem-fx-dots span:nth-child(2) {{ left: 28%; top: 68%; animation-delay: -1.2s; width: 3px; height: 3px; }}
+  .chem-fx-dots span:nth-child(3) {{ left: 62%; top: 22%; animation-delay: -2.4s; }}
+  .chem-fx-dots span:nth-child(4) {{ left: 78%; top: 58%; animation-delay: -3.1s; width: 5px; height: 5px; }}
+  .chem-fx-dots span:nth-child(5) {{ left: 46%; top: 80%; animation-delay: -4s; }}
+  .chem-metric-row {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.85rem;
+  }}
+  .chem-metric {{
+    padding: 0.35rem 0.65rem;
+    border-radius: 8px;
+    background: rgba(14,79,138,0.06);
+    border: 1px solid rgba(57,198,255,0.28);
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--deep);
+    animation: chem-blink 4.5s ease-in-out infinite;
+  }}
+  .chem-metric:nth-child(2) {{ animation-delay: 0.8s; }}
+  .chem-metric:nth-child(3) {{ animation-delay: 1.6s; }}
 
   /* —— 系统面板 —— */
   .chem-welcome {{
@@ -372,11 +472,11 @@ st.markdown(
 
   @keyframes chem-float {{
     0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-6px); }}
+    50% {{ transform: translateY(-8px); }}
   }}
   @keyframes chem-breathe {{
     0%, 100% {{ transform: scale(1); }}
-    50% {{ transform: scale(1.03); }}
+    50% {{ transform: scale(1.04); }}
   }}
   @keyframes chem-pulse {{
     0%, 100% {{ opacity: 1; }}
@@ -398,13 +498,43 @@ st.markdown(
     0% {{ background-position: 0% 50%; }}
     100% {{ background-position: 100% 50%; }}
   }}
+  @keyframes chem-aurora {{
+    0% {{ background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0% 0%, 100% 0%, 50% 100%, 0 0; }}
+    100% {{ background-position: 40px 20px, -30px 40px, 20px -20px, 0 0, 0 0, 8% 4%, 92% 6%, 48% 96%, 0 0; }}
+  }}
+  @keyframes chem-spin {{
+    to {{ transform: rotate(360deg); }}
+  }}
+  @keyframes chem-orbit {{
+    0% {{ transform: rotate(0deg) translateX(92px) rotate(0deg); }}
+    100% {{ transform: rotate(360deg) translateX(92px) rotate(-360deg); }}
+  }}
+  @keyframes chem-vscan {{
+    0% {{ top: -30%; opacity: 0; }}
+    20% {{ opacity: 0.7; }}
+    55% {{ opacity: 0.5; }}
+    100% {{ top: 110%; opacity: 0; }}
+  }}
+  @keyframes chem-drift {{
+    0%, 100% {{ transform: translateY(0); opacity: 0.25; }}
+    50% {{ transform: translateY(-14px); opacity: 0.7; }}
+  }}
+  @keyframes chem-blink {{
+    0%, 100% {{ border-color: rgba(57,198,255,0.28); box-shadow: none; }}
+    50% {{ border-color: rgba(57,198,255,0.65); box-shadow: 0 0 12px rgba(57,198,255,0.2); }}
+  }}
+  @keyframes chem-ripple {{
+    0% {{ box-shadow: 0 0 0 0 rgba(57,198,255,0.35); }}
+    70% {{ box-shadow: 0 0 0 12px rgba(57,198,255,0); }}
+    100% {{ box-shadow: 0 0 0 0 rgba(57,198,255,0); }}
+  }}
 
   @media (max-width: 820px) {{
     .chem-top {{ grid-template-columns: 1fr; text-align: center; }}
-    .chem-top-mascot-wrap {{ justify-self: center; width: 150px; }}
+    .chem-top-mascot-stage {{ justify-self: center; width: 180px; }}
     .chem-welcome {{ grid-template-columns: 1fr; text-align: center; justify-items: center; padding-left: 1.2rem; }}
     .chem-welcome::before {{ display: none; }}
-    .chem-steps {{ justify-content: center; }}
+    .chem-steps, .chem-metric-row {{ justify-content: center; }}
   }}
 
   /* —— 导航：精密条 —— */
@@ -528,16 +658,28 @@ st.markdown(
       0 0 18px rgba(57,198,255,0.22),
       inset 0 1px 0 rgba(255,255,255,0.28) !important;
   }}
+  .stButton > button[kind="primary"]::after,
+  button[data-testid="baseButton-primary"]::after,
+  button[kind="primary"]::after {{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%);
+    background-size: 220% 100%;
+    animation: chem-scan 2.8s linear infinite;
+    pointer-events: none;
+  }}
   .stButton > button[kind="primary"]:hover,
   .stDownloadButton > button[kind="primary"]:hover,
   button[data-testid="baseButton-primary"]:hover,
   button[kind="primary"]:hover,
   div[data-testid="stFormSubmitButton"] > button:hover {{
-    transform: translateY(-2px);
-    filter: brightness(1.06);
+    transform: translateY(-3px) scale(1.02);
+    filter: brightness(1.08);
+    animation: chem-shimmer 5s ease infinite, chem-ripple 1.2s ease-out infinite !important;
     box-shadow:
-      0 14px 30px rgba(30,138,216,0.42),
-      0 0 28px rgba(57,198,255,0.35),
+      0 16px 34px rgba(30,138,216,0.45),
+      0 0 32px rgba(57,198,255,0.4),
       inset 0 1px 0 rgba(255,255,255,0.35) !important;
     color: #fff !important;
   }}
@@ -611,24 +753,39 @@ def _chem_hero_html() -> str:
     mascot = ""
     if _MASCOT_B64:
         mascot = (
-            f'<img alt="Sci-fi bunny chemist" '
+            f'<img alt="Female bunny chemist" '
             f'src="data:image/png;base64,{_MASCOT_B64}" />'
         )
     return f"""
 <div class="chem-top">
+  <div class="chem-fx-dots" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
   <div style="position:relative;z-index:1;">
     <p class="chem-kicker">ChemOps // Neural Lab Console</p>
     <p class="chem-top-title">Davina <span>ChemAgent</span></p>
     <p class="chem-top-sub">
       冰蓝分子计算台 · 反应推演 · 结构检索 · 蛋白对接 · 光谱 / 文献链路
     </p>
+    <div class="chem-metric-row">
+      <span class="chem-metric">CPU · ONLINE</span>
+      <span class="chem-metric">RXN · STANDBY</span>
+      <span class="chem-metric">VINA · READY</span>
+    </div>
   </div>
-  <div class="chem-top-mascot-wrap">{mascot}</div>
+  <div class="chem-top-mascot-stage">
+    <div class="chem-ring"></div>
+    <div class="chem-ring chem-ring-2"></div>
+    <span class="chem-orb"></span>
+    <span class="chem-orb o2"></span>
+    <span class="chem-orb o3"></span>
+    <div class="chem-top-mascot-wrap">{mascot}</div>
+  </div>
 </div>
 <div class="chem-welcome">
   <div class="chem-welcome-art">{mascot}</div>
   <div>
-    <h3>SYSTEM READY · 白兔实验员在线</h3>
+    <h3>SYSTEM READY · 女兔实验员在线</h3>
     <p>配置原料与反应参数后启动预测引擎；也可切换至对接模块运行 Vina，或在分子库执行结构检索。</p>
     <div class="chem-steps">
       <span class="chem-step"><i>01</i>解析原料</span>
@@ -644,7 +801,7 @@ def _chem_sidebar_brand_html() -> str:
     avatar = ""
     if _MASCOT_B64:
         avatar = (
-            f'<img class="chem-side-avatar" alt="Sci-fi bunny chemist" '
+            f'<img class="chem-side-avatar" alt="Female bunny chemist" '
             f'src="data:image/png;base64,{_MASCOT_B64}" />'
         )
     elif _FAVICON_B64:
@@ -657,7 +814,7 @@ def _chem_sidebar_brand_html() -> str:
 <div class="chem-side-brand">
   {avatar}
   <p class="chem-side-name">ChemAgent</p>
-  <p class="chem-side-sub">Ice-Tech Lab Node</p>
+  <p class="chem-side-sub">Ice-Tech · Agent Node</p>
   <div class="chem-side-badge">Link Active</div>
 </div>
 """
