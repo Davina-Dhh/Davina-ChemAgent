@@ -2,3 +2,10 @@ libxrender1
 libxext6
 libsm6
 libglib2.0-0
+libgl1
+libglu1-mesa
+libglew2.2
+freeglut3
+libpng16-16
+libfreetype6
+libxml2

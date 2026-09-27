@@ -1,5 +1,5 @@
 # ChemCrow Lab 对接可视化依赖（项目 .venv）
-# Meeko 0.8 受体准备硬依赖：rdkit + numpy + scipy + gemmi
+# 与 Cloud requirements.txt 对齐：Meeko 硬依赖 + 内嵌 PyMOL 出图
 pymol-open-source>=3.0.0
 py3Dmol>=2.0.0
 matplotlib>=3.7.0
