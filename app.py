@@ -1,4 +1,4 @@
-"""ChemCrow Lab 可视化页面。
+"""Davina ChemAgent 可视化页面（蓝白清新化学风）。
 
 启动:
   .\\.venv\\Scripts\\streamlit.exe run app.py --server.port 8502
@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import base64
 import io
 import os
 from pathlib import Path
@@ -31,33 +32,387 @@ OUT = ROOT / "outputs"
 OUT.mkdir(exist_ok=True)
 
 st.set_page_config(
-    page_title="ChemCrow Lab",
-    page_icon="🧪",
+    page_title="Davina ChemAgent",
+    page_icon="assets/chem_fox_mascot.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+
+def _asset_b64(name: str) -> str:
+    p = ROOT / "assets" / name
+    if not p.is_file():
+        return ""
+    return base64.b64encode(p.read_bytes()).decode("ascii")
+
+
+_FOX_B64 = _asset_b64("chem_fox_mascot.png")
+_ATMO_B64 = _asset_b64("chem_lab_atmosphere.png")
+_LOGO_B64 = _asset_b64("chem_logo_mark.png")
+
+# 蓝白清新 · 实验室质感主题
 st.markdown(
-    """
+    f"""
 <style>
-  .block-container { padding-top: 1.2rem; max-width: 1200px; }
-  .main-product-box {
-    border: 3px solid #0B6E4F;
-    background: #E8F5F0;
-    border-radius: 12px;
-    padding: 1rem 1.2rem;
-    margin: 0.8rem 0 1.2rem 0;
-  }
-  .main-product-title {
-    color: #0B6E4F;
-    font-size: 1.35rem;
-    font-weight: 700;
+  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@400;500;600;700&display=swap');
+
+  :root {{
+    --ink: #16324F;
+    --ink-soft: #4A6B88;
+    --deep: #0F3D6E;
+    --blue: #2A7BBF;
+    --aqua: #5EB6E0;
+    --mist: #F4F9FD;
+    --glass: rgba(255,255,255,0.78);
+    --line: rgba(15,61,110,0.12);
+    --shadow: 0 18px 50px rgba(15,61,110,0.10);
+  }}
+
+  html, body, [class*="css"] {{
+    font-family: "Sora", "Segoe UI", sans-serif;
+    color: var(--ink);
+  }}
+
+  .stApp {{
+    background-color: #F3F8FC;
+    background-image:
+      radial-gradient(ellipse 900px 420px at 12% -8%, rgba(94,182,224,0.28), transparent 60%),
+      radial-gradient(ellipse 700px 380px at 88% 0%, rgba(42,123,191,0.14), transparent 55%),
+      linear-gradient(180deg, #F7FBFE 0%, #EEF5FA 40%, #F5F9FC 100%);
+  }}
+
+  .block-container {{
+    padding-top: 0.85rem !important;
+    padding-bottom: 3rem !important;
+    max-width: 1120px;
+  }}
+
+  /* —— 侧栏 —— */
+  section[data-testid="stSidebar"] {{
+    background:
+      linear-gradient(175deg, #FAFCFE 0%, #EAF3FA 55%, #E3F0F8 100%);
+    border-right: 1px solid var(--line);
+  }}
+  section[data-testid="stSidebar"] > div {{
+    padding-top: 1rem;
+  }}
+  section[data-testid="stSidebar"] h2 {{
+    font-family: "Instrument Serif", Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.01em;
+    color: var(--deep) !important;
+    font-size: 1.35rem !important;
+  }}
+
+  .chem-side-brand {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin: 0 0 1.1rem 0;
+    padding: 0.35rem 0.4rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+  }}
+  .chem-side-avatar {{
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center 18%;
+    background: #fff;
+    border: 3px solid rgba(255,255,255,0.95);
+    box-shadow:
+      0 0 0 1px rgba(42,123,191,0.18),
+      0 12px 28px rgba(15,61,110,0.14);
+    animation: chem-breathe 5.5s ease-in-out infinite;
+  }}
+  .chem-side-name {{
+    margin: 0.7rem 0 0.15rem;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: 1.28rem;
+    color: var(--deep);
+    letter-spacing: -0.01em;
+  }}
+  .chem-side-sub {{
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }}
+
+  /* —— 全幅英雄区 —— */
+  .chem-hero {{
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.25fr 0.9fr;
+    align-items: end;
+    gap: 0.5rem;
+    min-height: 210px;
+    margin: 0 0 1.15rem 0;
+    padding: 1.6rem 1.7rem 1.45rem;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.55);
+    box-shadow: var(--shadow);
+    background-color: #D8ECF7;
+    background-image:
+      linear-gradient(105deg, rgba(247,251,254,0.94) 0%, rgba(232,244,252,0.72) 42%, rgba(200,228,244,0.35) 100%),
+      url("data:image/png;base64,{_ATMO_B64}");
+    background-size: cover;
+    background-position: center right;
+    animation: chem-fade-in 0.7s ease-out both;
+  }}
+  .chem-hero::after {{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 78% 55%, rgba(255,255,255,0.08) 0%, transparent 40%),
+      repeating-linear-gradient(
+        -18deg,
+        transparent,
+        transparent 18px,
+        rgba(15,61,110,0.015) 18px,
+        rgba(15,61,110,0.015) 19px
+      );
+    pointer-events: none;
+  }}
+  .chem-hero-copy {{
+    position: relative;
+    z-index: 2;
+    max-width: 34rem;
+    padding-bottom: 0.2rem;
+  }}
+  .chem-kicker {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }}
+  .chem-kicker::before {{
+    content: "";
+    width: 18px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--aqua), var(--blue));
+    border-radius: 2px;
+  }}
+  .chem-brand {{
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: clamp(2.35rem, 4.2vw, 3.15rem);
+    font-weight: 400;
+    color: var(--deep);
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0;
+    animation: chem-rise 0.8s 0.08s ease-out both;
+  }}
+  .chem-brand em {{
+    font-style: italic;
+    color: var(--blue);
+  }}
+  .chem-tagline {{
+    margin: 0.75rem 0 0;
+    max-width: 28rem;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+    font-weight: 400;
+    line-height: 1.55;
+    animation: chem-rise 0.8s 0.16s ease-out both;
+  }}
+  .chem-hero-art {{
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    min-height: 180px;
+  }}
+  .chem-mascot {{
+    width: min(210px, 34vw);
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 28px rgba(15,61,110,0.18));
+    animation: chem-float 5.2s ease-in-out infinite, chem-rise 0.85s 0.12s ease-out both;
+    transform-origin: 50% 90%;
+  }}
+
+  @keyframes chem-float {{
+    0%, 100% {{ transform: translateY(0) rotate(-0.4deg); }}
+    50% {{ transform: translateY(-8px) rotate(0.6deg); }}
+  }}
+  @keyframes chem-breathe {{
+    0%, 100% {{ transform: scale(1); }}
+    50% {{ transform: scale(1.03); }}
+  }}
+  @keyframes chem-fade-in {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+    to {{ opacity: 1; transform: translateY(0); }}
+  }}
+  @keyframes chem-rise {{
+    from {{ opacity: 0; transform: translateY(12px); }}
+    to {{ opacity: 1; transform: translateY(0); }}
+  }}
+
+  @media (max-width: 820px) {{
+    .chem-hero {{
+      grid-template-columns: 1fr;
+      min-height: 0;
+      padding: 1.35rem 1.2rem 0.4rem;
+      text-align: center;
+    }}
+    .chem-hero-copy {{ max-width: none; }}
+    .chem-kicker {{ justify-content: center; }}
+    .chem-tagline {{ margin-left: auto; margin-right: auto; }}
+    .chem-hero-art {{ justify-content: center; min-height: 140px; }}
+    .chem-mascot {{ width: 150px; }}
+  }}
+
+  /* —— 导航 —— */
+  div[data-testid="stHorizontalBlock"] > div:has(div[role="radiogroup"]) {{
+    margin-bottom: 0.35rem;
+  }}
+  div[role="radiogroup"] {{
+    gap: 0.25rem !important;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    padding: 0.35rem !important;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    box-shadow: 0 6px 20px rgba(15,61,110,0.05);
+    justify-content: center;
+  }}
+  div[role="radiogroup"] label {{
+    background: transparent !important;
+    border-radius: 999px !important;
+    padding: 0.42rem 0.85rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    color: var(--ink-soft) !important;
+    transition: background 0.2s ease, color 0.2s ease;
+  }}
+  div[role="radiogroup"] label:hover {{
+    background: rgba(42,123,191,0.08) !important;
+    color: var(--deep) !important;
+  }}
+  div[role="radiogroup"] label:has(input:checked) {{
+    background: #fff !important;
+    color: var(--deep) !important;
+    box-shadow: 0 2px 10px rgba(15,61,110,0.08);
+  }}
+
+  /* —— 产物高亮 —— */
+  .main-product-box {{
+    border: 1px solid rgba(42,123,191,0.22);
+    background:
+      linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(236,246,253,0.92) 100%);
+    border-radius: 18px;
+    padding: 1.15rem 1.35rem;
+    margin: 0.9rem 0 1.25rem;
+    box-shadow: 0 10px 30px rgba(15,61,110,0.06);
+  }}
+  .main-product-title {{
+    color: var(--deep);
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: 1.45rem;
+    font-weight: 400;
     margin-bottom: 0.4rem;
-  }
+  }}
+
+  /* —— 控件 —— */
+  .stButton > button {{
+    border-radius: 12px !important;
+    font-weight: 560 !important;
+    letter-spacing: 0.01em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  }}
+  .stButton > button:hover {{
+    transform: translateY(-1px);
+  }}
+  .stButton > button[kind="primary"],
+  button[data-testid="baseButton-primary"] {{
+    background: linear-gradient(165deg, #3E96D4 0%, #1F6BB0 100%) !important;
+    border: 1px solid rgba(15,61,110,0.12) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(31,107,176,0.28) !important;
+  }}
+
+  h1, h2, h3 {{ color: var(--deep) !important; }}
+  h2, h3 {{
+    font-family: "Instrument Serif", Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.01em;
+  }}
+
+  .stTextInput input,
+  .stTextArea textarea,
+  .stSelectbox div[data-baseweb="select"] > div {{
+    border-radius: 11px !important;
+    border-color: var(--line) !important;
+    background: rgba(255,255,255,0.88) !important;
+  }}
+
+  hr {{ border-color: var(--line) !important; }}
+
+  div[data-testid="stExpander"] {{
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }}
+  div[data-testid="stAlert"] {{ border-radius: 14px; }}
+
+  /* 隐藏默认页眉装饰 */
+  header[data-testid="stHeader"] {{
+    background: transparent;
+  }}
+  div[data-testid="stDecoration"] {{ display: none; }}
+  footer {{ visibility: hidden; }}
 </style>
 """,
     unsafe_allow_html=True,
 )
+
+
+def _chem_hero_html() -> str:
+    mascot = ""
+    if _FOX_B64:
+        mascot = (
+            f'<img class="chem-mascot" alt="Arctic fox chemist" '
+            f'src="data:image/png;base64,{_FOX_B64}" />'
+        )
+    return f"""
+<div class="chem-hero">
+  <div class="chem-hero-copy">
+    <p class="chem-kicker">Chemistry · Agent Lab</p>
+    <p class="chem-brand">Davina <em>ChemAgent</em></p>
+    <p class="chem-tagline">
+      从反应预测到蛋白对接，一条清爽的化学 Agent 流水线。
+    </p>
+  </div>
+  <div class="chem-hero-art">{mascot}</div>
+</div>
+"""
+
+
+def _chem_sidebar_brand_html() -> str:
+    avatar = ""
+    if _FOX_B64:
+        avatar = (
+            f'<img class="chem-side-avatar" alt="Fox chemist" '
+            f'src="data:image/png;base64,{_FOX_B64}" />'
+        )
+    return f"""
+<div class="chem-side-brand">
+  {avatar}
+  <p class="chem-side-name">ChemAgent</p>
+  <p class="chem-side-sub">Lab Companion</p>
+</div>
+"""
 
 
 def _sidebar_keys() -> None:
@@ -91,6 +446,7 @@ def _sidebar_keys() -> None:
     except Exception:
         pass
 
+    st.sidebar.markdown(_chem_sidebar_brand_html(), unsafe_allow_html=True)
     st.sidebar.header("API / 模型")
     st.sidebar.caption("演示环境已预置 Agnes Key，一般无需修改。")
     agnes = st.sidebar.text_input(
@@ -2760,8 +3116,7 @@ def main():
     if "nav_page" not in st.session_state:
         st.session_state["nav_page"] = "反应预测"
 
-    st.title("ChemCrow Lab")
-    st.caption("反应预测 · 分子库 · 蛋白对接 · 历史 · NMR/文献 · 路径可视化")
+    st.markdown(_chem_hero_html(), unsafe_allow_html=True)
     _sidebar_keys()
 
     page = st.radio(
