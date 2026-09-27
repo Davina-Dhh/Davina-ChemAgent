@@ -47,206 +47,296 @@ def _asset_b64(name: str) -> str:
 
 
 # 依赖仓库内 assets/；未提交时 Cloud 端为空，英雄区会隐藏吉祥物
-_MASCOT_B64 = _asset_b64("chem_bunny_scientist.png") or _asset_b64("chemist_mascot.png")
+_MASCOT_B64 = (
+    _asset_b64("chem_bunny_scifi.png")
+    or _asset_b64("chem_bunny_scientist.png")
+    or _asset_b64("chemist_mascot.png")
+)
 _FAVICON_B64 = _asset_b64("chem_favicon.png") or _asset_b64("chem_logo_mark.png")
 
-# 软圆角蓝白卡片风（参考友好 Agent 工作台布局）
+# 冰蓝科幻 HUD 主题（白底 + 精密蓝，偏高级感）
 st.markdown(
     f"""
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
   :root {{
-    --ink: #1B3A57;
-    --ink-soft: #5A7A96;
-    --deep: #155A9C;
-    --blue: #3B9FE0;
-    --aqua: #7CC8F0;
-    --sky: #E8F4FC;
-    --mist: #F3F8FC;
-    --card: #FFFFFF;
-    --line: rgba(43,120,180,0.14);
-    --shadow: 0 14px 36px rgba(40,110,170,0.10);
-    --shadow-soft: 0 8px 22px rgba(40,110,170,0.07);
+    --ink: #0E2438;
+    --ink-soft: #4A6B86;
+    --deep: #0B4F8A;
+    --cyan: #39C6FF;
+    --blue: #1E8AD8;
+    --ice: #EAF6FF;
+    --panel: rgba(255,255,255,0.72);
+    --line: rgba(30,138,216,0.22);
+    --glow: 0 0 24px rgba(57,198,255,0.22);
   }}
 
   html, body, [class*="css"] {{
-    font-family: "Plus Jakarta Sans", "Nunito", "Segoe UI", sans-serif;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
     color: var(--ink);
   }}
 
   .stApp {{
-    background-color: #EEF6FC;
+    background-color: #F2F8FD;
     background-image:
-      radial-gradient(circle at 18px 18px, rgba(90,160,210,0.16) 1.2px, transparent 1.4px),
-      radial-gradient(ellipse 800px 380px at 8% -6%, rgba(124,200,240,0.35), transparent 58%),
-      radial-gradient(ellipse 680px 340px at 95% 4%, rgba(59,159,224,0.18), transparent 52%),
-      linear-gradient(180deg, #F7FBFE 0%, #EEF6FC 48%, #F5FAFD 100%);
-    background-size: 28px 28px, auto, auto, auto;
+      linear-gradient(rgba(30,138,216,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,138,216,0.045) 1px, transparent 1px),
+      radial-gradient(900px 420px at 12% -10%, rgba(57,198,255,0.22), transparent 58%),
+      radial-gradient(720px 380px at 92% 0%, rgba(14,79,138,0.10), transparent 55%),
+      linear-gradient(180deg, #F8FCFF 0%, #EEF5FB 50%, #F5FAFE 100%);
+    background-size: 48px 48px, 48px 48px, auto, auto, auto;
   }}
 
   .block-container {{
-    padding-top: 1rem !important;
-    padding-bottom: 3.2rem !important;
-    max-width: 1080px;
+    padding-top: 0.9rem !important;
+    padding-bottom: 3rem !important;
+    max-width: 1120px;
   }}
 
-  /* —— 侧栏：软白卡片感 —— */
+  /* —— 侧栏 HUD —— */
   section[data-testid="stSidebar"] {{
-    background: linear-gradient(180deg, #FBFDFF 0%, #F0F7FC 100%);
+    background:
+      linear-gradient(180deg, rgba(250,253,255,0.96) 0%, rgba(232,243,252,0.98) 100%);
     border-right: 1px solid var(--line);
+    box-shadow: inset -1px 0 0 rgba(57,198,255,0.12);
   }}
-  section[data-testid="stSidebar"] > div {{ padding-top: 0.85rem; }}
   section[data-testid="stSidebar"] h2 {{
-    font-family: "Nunito", sans-serif !important;
-    font-weight: 800 !important;
+    font-family: "Orbitron", "Space Grotesk", sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase;
     color: var(--deep) !important;
-    font-size: 1.2rem !important;
+    font-size: 0.95rem !important;
   }}
 
   .chem-side-brand {{
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     margin: 0 0 1rem;
-    padding: 0.85rem 0.7rem 1rem;
-    background: var(--card);
+    padding: 1rem 0.75rem 1.05rem;
+    background: linear-gradient(160deg, rgba(255,255,255,0.9), rgba(232,245,255,0.78));
     border: 1px solid var(--line);
-    border-radius: 22px;
-    box-shadow: var(--shadow-soft);
+    border-radius: 14px;
+    box-shadow: var(--glow);
+    overflow: hidden;
+  }}
+  .chem-side-brand::before {{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(57,198,255,0.10) 50%, transparent 60%);
+    background-size: 220% 100%;
+    animation: chem-scan 5.5s linear infinite;
+    pointer-events: none;
   }}
   .chem-side-avatar {{
-    width: 92px;
-    height: 92px;
-    border-radius: 28px;
+    width: 88px;
+    height: 88px;
+    border-radius: 12px;
     object-fit: cover;
-    object-position: center 20%;
-    background: linear-gradient(160deg, #FFFFFF 0%, #E3F2FB 100%);
-    border: 3px solid #fff;
+    object-position: center 18%;
+    background: #0B4F8A;
+    border: 1px solid rgba(57,198,255,0.55);
     box-shadow:
-      0 0 0 1px rgba(59,159,224,0.22),
-      0 12px 26px rgba(40,110,170,0.14);
-    animation: chem-breathe 4.8s ease-in-out infinite;
+      0 0 0 3px rgba(255,255,255,0.7),
+      0 0 22px rgba(57,198,255,0.28);
+    animation: chem-breathe 5s ease-in-out infinite;
   }}
   .chem-side-name {{
-    margin: 0.7rem 0 0.1rem;
-    font-family: "Nunito", sans-serif;
-    font-weight: 800;
-    font-size: 1.35rem;
+    margin: 0.75rem 0 0.15rem;
+    font-family: "Orbitron", sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--deep);
   }}
   .chem-side-sub {{
     margin: 0;
-    font-size: 0.78rem;
-    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--ink-soft);
   }}
   .chem-side-badge {{
-    margin-top: 0.55rem;
+    margin-top: 0.65rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.22rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(59,159,224,0.12);
+    gap: 0.4rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 6px;
+    background: rgba(14,79,138,0.08);
+    border: 1px solid rgba(57,198,255,0.35);
     color: var(--deep);
-    font-size: 0.72rem;
-    font-weight: 700;
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }}
   .chem-side-badge::before {{
     content: "";
     width: 7px; height: 7px;
     border-radius: 50%;
-    background: #3B9FE0;
-    box-shadow: 0 0 0 3px rgba(59,159,224,0.25);
-    animation: chem-pulse 1.8s ease-in-out infinite;
+    background: var(--cyan);
+    box-shadow: 0 0 8px rgba(57,198,255,0.85);
+    animation: chem-pulse 1.6s ease-in-out infinite;
   }}
 
-  /* —— 顶栏标题区 —— */
+  /* —— 顶栏 HUD —— */
   .chem-top {{
+    position: relative;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1.35fr 0.85fr;
     gap: 1rem;
-    align-items: center;
-    margin: 0 0 0.85rem;
+    align-items: stretch;
+    margin: 0 0 0.9rem;
+    padding: 1.35rem 1.45rem;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(125deg, rgba(255,255,255,0.88) 0%, rgba(230,244,255,0.75) 55%, rgba(210,234,252,0.55) 100%);
+    box-shadow: 0 18px 40px rgba(14,79,138,0.08), var(--glow);
+    overflow: hidden;
     animation: chem-fade-in 0.55s ease-out both;
+  }}
+  .chem-top::before {{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent, rgba(57,198,255,0.08), transparent);
+    background-size: 200% 100%;
+    animation: chem-scan 7s linear infinite;
+    pointer-events: none;
+  }}
+  .chem-top::after {{
+    content: "";
+    position: absolute;
+    top: 0; left: 1.2rem; right: 1.2rem;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.85;
+  }}
+  .chem-kicker {{
+    margin: 0 0 0.55rem;
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--blue);
   }}
   .chem-top-title {{
     margin: 0;
-    font-family: "Nunito", sans-serif;
-    font-weight: 800;
-    font-size: clamp(1.85rem, 3.4vw, 2.45rem);
+    font-family: "Orbitron", "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.7rem, 3.2vw, 2.35rem);
     color: var(--ink);
-    letter-spacing: -0.03em;
+    letter-spacing: 0.02em;
     line-height: 1.15;
   }}
-  .chem-top-title span {{ color: var(--deep); }}
+  .chem-top-title span {{
+    color: var(--deep);
+    text-shadow: 0 0 18px rgba(57,198,255,0.25);
+  }}
   .chem-top-sub {{
-    margin: 0.4rem 0 0;
+    margin: 0.55rem 0 0;
+    max-width: 34rem;
     color: var(--ink-soft);
     font-size: 0.95rem;
-    font-weight: 560;
-    line-height: 1.5;
+    font-weight: 500;
+    line-height: 1.55;
   }}
   .chem-top-mascot-wrap {{
-    width: 118px;
-    height: 118px;
-    border-radius: 28px;
+    position: relative;
+    z-index: 1;
+    justify-self: end;
+    width: min(200px, 34vw);
+    aspect-ratio: 1;
+    border-radius: 14px;
     overflow: hidden;
-    background: linear-gradient(155deg, #FFFFFF, #DFF0FA);
-    border: 3px solid #fff;
-    box-shadow: var(--shadow);
-    animation: chem-float 4.8s ease-in-out infinite;
+    background:
+      radial-gradient(circle at 50% 30%, rgba(57,198,255,0.25), transparent 55%),
+      linear-gradient(160deg, #F7FCFF, #D4EAFB);
+    border: 1px solid rgba(57,198,255,0.45);
+    box-shadow: 0 0 28px rgba(57,198,255,0.18);
+    animation: chem-float 5s ease-in-out infinite;
+  }}
+  .chem-top-mascot-wrap::before {{
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(57,198,255,0.25);
+    border-radius: 10px;
+    pointer-events: none;
   }}
   .chem-top-mascot-wrap img {{
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 18%;
+    object-position: center 16%;
   }}
 
-  /* —— 欢迎虚线卡片 —— */
+  /* —— 系统面板 —— */
   .chem-welcome {{
+    position: relative;
     display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 1rem;
+    grid-template-columns: 110px 1fr;
+    gap: 1.05rem;
     align-items: center;
     margin: 0 0 1rem;
-    padding: 1.1rem 1.25rem;
-    background: rgba(255,255,255,0.88);
-    border: 2px dashed rgba(59,159,224,0.42);
-    border-radius: 22px;
-    box-shadow: var(--shadow-soft);
-    animation: chem-rise 0.65s 0.05s ease-out both;
+    padding: 1.05rem 1.2rem;
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(14,79,138,0.06);
+    animation: chem-rise 0.6s 0.05s ease-out both;
+  }}
+  .chem-welcome::before {{
+    content: "";
+    position: absolute;
+    left: 0; top: 12px; bottom: 12px;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--cyan), var(--blue));
+    box-shadow: 0 0 12px rgba(57,198,255,0.45);
   }}
   .chem-welcome-art {{
-    width: 108px;
-    height: 108px;
-    border-radius: 24px;
+    width: 96px;
+    height: 96px;
+    border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(160deg, #F7FBFE, #DCEFFA);
-    border: 2px solid rgba(255,255,255,0.9);
+    background: linear-gradient(160deg, #F4FAFF, #CDE7FA);
+    border: 1px solid rgba(57,198,255,0.4);
+    box-shadow: 0 0 16px rgba(57,198,255,0.15);
   }}
   .chem-welcome-art img {{
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 20%;
+    object-position: center 18%;
   }}
   .chem-welcome h3 {{
-    margin: 0 0 0.35rem !important;
-    font-family: "Nunito", sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 1.2rem !important;
+    margin: 0 0 0.3rem !important;
+    font-family: "Orbitron", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.98rem !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase;
     color: var(--deep) !important;
   }}
   .chem-welcome p {{
     margin: 0;
     color: var(--ink-soft);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     line-height: 1.55;
-    font-weight: 560;
+    font-weight: 500;
   }}
   .chem-steps {{
     display: flex;
@@ -257,108 +347,125 @@ st.markdown(
   .chem-step {{
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.28rem 0.7rem;
-    border-radius: 999px;
-    background: var(--sky);
+    gap: 0.4rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 6px;
+    background: rgba(14,79,138,0.05);
     color: var(--deep);
-    font-size: 0.75rem;
-    font-weight: 700;
-    border: 1px solid rgba(59,159,224,0.18);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(30,138,216,0.2);
   }}
   .chem-step i {{
     width: 18px; height: 18px;
-    border-radius: 50%;
+    border-radius: 4px;
     display: inline-grid;
     place-items: center;
-    background: linear-gradient(145deg, #7CC8F0, #3B9FE0);
+    background: linear-gradient(145deg, #39C6FF, #1E8AD8);
     color: #fff;
     font-style: normal;
-    font-size: 0.68rem;
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
   }}
 
   @keyframes chem-float {{
     0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-7px); }}
+    50% {{ transform: translateY(-6px); }}
   }}
   @keyframes chem-breathe {{
     0%, 100% {{ transform: scale(1); }}
-    50% {{ transform: scale(1.035); }}
+    50% {{ transform: scale(1.03); }}
   }}
   @keyframes chem-pulse {{
-    0%, 100% {{ box-shadow: 0 0 0 3px rgba(59,159,224,0.22); }}
-    50% {{ box-shadow: 0 0 0 6px rgba(59,159,224,0.08); }}
+    0%, 100% {{ opacity: 1; }}
+    50% {{ opacity: 0.45; }}
   }}
   @keyframes chem-fade-in {{
     from {{ opacity: 0; transform: translateY(8px); }}
     to {{ opacity: 1; transform: translateY(0); }}
   }}
   @keyframes chem-rise {{
-    from {{ opacity: 0; transform: translateY(14px); }}
+    from {{ opacity: 0; transform: translateY(12px); }}
     to {{ opacity: 1; transform: translateY(0); }}
+  }}
+  @keyframes chem-scan {{
+    0% {{ background-position: 120% 0; }}
+    100% {{ background-position: -120% 0; }}
   }}
   @keyframes chem-shimmer {{
     0% {{ background-position: 0% 50%; }}
     100% {{ background-position: 100% 50%; }}
   }}
 
-  @media (max-width: 780px) {{
+  @media (max-width: 820px) {{
     .chem-top {{ grid-template-columns: 1fr; text-align: center; }}
-    .chem-top-mascot-wrap {{ margin: 0 auto; }}
-    .chem-welcome {{ grid-template-columns: 1fr; text-align: center; justify-items: center; }}
+    .chem-top-mascot-wrap {{ justify-self: center; width: 150px; }}
+    .chem-welcome {{ grid-template-columns: 1fr; text-align: center; justify-items: center; padding-left: 1.2rem; }}
+    .chem-welcome::before {{ display: none; }}
     .chem-steps {{ justify-content: center; }}
   }}
 
-  /* —— 导航胶囊 —— */
+  /* —— 导航：精密条 —— */
   div[role="radiogroup"] {{
-    gap: 0.3rem !important;
-    background: rgba(255,255,255,0.82);
-    backdrop-filter: blur(8px);
-    padding: 0.4rem !important;
-    border-radius: 999px;
+    gap: 0.25rem !important;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(10px);
+    padding: 0.35rem !important;
+    border-radius: 12px;
     border: 1px solid var(--line);
-    box-shadow: var(--shadow-soft);
+    box-shadow: 0 8px 22px rgba(14,79,138,0.06);
     justify-content: center;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
   }}
   div[role="radiogroup"] label {{
     background: transparent !important;
-    border-radius: 999px !important;
-    padding: 0.45rem 0.9rem !important;
-    font-size: 0.88rem !important;
-    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 0.42rem 0.85rem !important;
+    font-size: 0.86rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em;
     color: var(--ink-soft) !important;
-    transition: all 0.22s ease !important;
+    transition: all 0.2s ease !important;
   }}
   div[role="radiogroup"] label:hover {{
-    background: rgba(59,159,224,0.10) !important;
+    background: rgba(57,198,255,0.10) !important;
     color: var(--deep) !important;
-    transform: translateY(-1px);
   }}
   div[role="radiogroup"] label:has(input:checked) {{
-    background: linear-gradient(145deg, #5EB6E8, #2F8FD4) !important;
+    background: linear-gradient(135deg, #1E8AD8, #0B4F8A) !important;
     color: #fff !important;
-    box-shadow: 0 6px 16px rgba(47,143,212,0.35);
+    box-shadow: 0 0 16px rgba(57,198,255,0.35);
   }}
 
-  /* —— 产物高亮卡片 —— */
+  /* —— 产物面板 —— */
   .main-product-box {{
-    border: 1px solid rgba(59,159,224,0.22);
-    background: linear-gradient(150deg, #FFFFFF 0%, #EEF7FC 100%);
-    border-radius: 22px;
-    padding: 1.15rem 1.35rem;
+    position: relative;
+    border: 1px solid rgba(57,198,255,0.35);
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(232,245,255,0.9));
+    border-radius: 14px;
+    padding: 1.15rem 1.3rem;
     margin: 0.9rem 0 1.25rem;
-    box-shadow: var(--shadow);
+    box-shadow: 0 14px 34px rgba(14,79,138,0.08), 0 0 20px rgba(57,198,255,0.08);
+  }}
+  .main-product-box::before {{
+    content: "";
+    position: absolute;
+    top: 0; left: 1rem; right: 1rem;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
   }}
   .main-product-title {{
     color: var(--deep);
-    font-family: "Nunito", sans-serif;
-    font-size: 1.4rem;
-    font-weight: 800;
+    font-family: "Orbitron", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     margin-bottom: 0.4rem;
   }}
 
-  /* —— 按钮：胶囊 + 动态 —— */
+  /* —— 科幻按钮 —— */
   .stButton > button,
   .stDownloadButton > button,
   div[data-testid="stFormSubmitButton"] > button,
@@ -366,130 +473,130 @@ st.markdown(
   button[data-testid="baseButton-secondary"],
   button[kind="primary"],
   button[kind="secondary"] {{
-    border-radius: 999px !important;
-    font-family: "Nunito", "Plus Jakarta Sans", sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 0.95rem !important;
-    letter-spacing: 0.01em !important;
-    min-height: 2.7rem !important;
-    padding: 0.5rem 1.25rem !important;
+    border-radius: 10px !important;
+    font-family: "Space Grotesk", sans-serif !important;
+    font-weight: 650 !important;
+    font-size: 0.92rem !important;
+    letter-spacing: 0.03em !important;
+    min-height: 2.6rem !important;
+    padding: 0.48rem 1.15rem !important;
     position: relative !important;
     overflow: hidden !important;
     transition:
-      transform 0.22s cubic-bezier(.2,.8,.2,1),
-      box-shadow 0.22s ease,
-      filter 0.22s ease,
-      background 0.22s ease,
-      border-color 0.22s ease !important;
+      transform 0.2s cubic-bezier(.2,.8,.2,1),
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      filter 0.2s ease !important;
   }}
 
-  /* 次要按钮 */
   .stButton > button,
   .stDownloadButton > button,
   button[data-testid="baseButton-secondary"],
   button[kind="secondary"] {{
-    background: linear-gradient(180deg, #FFFFFF 0%, #F0F7FC 100%) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(236,246,255,0.95)) !important;
     color: var(--deep) !important;
-    border: 1.5px solid rgba(59,159,224,0.32) !important;
-    box-shadow: 0 6px 14px rgba(40,110,170,0.08) !important;
+    border: 1px solid rgba(30,138,216,0.35) !important;
+    box-shadow: 0 4px 14px rgba(14,79,138,0.07) !important;
   }}
   .stButton > button:hover,
   .stDownloadButton > button:hover,
   button[data-testid="baseButton-secondary"]:hover,
   button[kind="secondary"]:hover {{
-    transform: translateY(-3px) scale(1.02);
-    background: linear-gradient(180deg, #FFFFFF 0%, #E5F3FB 100%) !important;
-    border-color: rgba(59,159,224,0.55) !important;
-    box-shadow: 0 12px 24px rgba(40,110,170,0.16) !important;
+    transform: translateY(-2px);
+    border-color: rgba(57,198,255,0.7) !important;
+    box-shadow: 0 8px 22px rgba(14,79,138,0.12), 0 0 16px rgba(57,198,255,0.18) !important;
     color: var(--deep) !important;
   }}
   .stButton > button:active,
-  .stDownloadButton > button:active,
-  button[data-testid="baseButton-secondary"]:active {{
-    transform: translateY(0) scale(0.98);
+  .stDownloadButton > button:active {{
+    transform: translateY(0) scale(0.985);
   }}
 
-  /* 主按钮：流动蓝渐变 */
   .stButton > button[kind="primary"],
   .stDownloadButton > button[kind="primary"],
   button[data-testid="baseButton-primary"],
   button[kind="primary"],
   div[data-testid="stFormSubmitButton"] > button {{
-    background: linear-gradient(120deg, #7CC8F0, #3B9FE0, #1F78C4, #3B9FE0) !important;
+    background: linear-gradient(120deg, #39C6FF, #1E8AD8, #0B4F8A, #1E8AD8) !important;
     background-size: 220% 220% !important;
-    animation: chem-shimmer 4.5s ease infinite !important;
-    border: none !important;
+    animation: chem-shimmer 5s ease infinite !important;
+    border: 1px solid rgba(57,198,255,0.45) !important;
     color: #fff !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.15);
     box-shadow:
-      0 10px 24px rgba(47,143,212,0.38),
-      inset 0 1px 0 rgba(255,255,255,0.35) !important;
+      0 10px 24px rgba(30,138,216,0.35),
+      0 0 18px rgba(57,198,255,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.28) !important;
   }}
   .stButton > button[kind="primary"]:hover,
   .stDownloadButton > button[kind="primary"]:hover,
   button[data-testid="baseButton-primary"]:hover,
   button[kind="primary"]:hover,
   div[data-testid="stFormSubmitButton"] > button:hover {{
-    transform: translateY(-3px) scale(1.03);
-    filter: brightness(1.06) saturate(1.05);
+    transform: translateY(-2px);
+    filter: brightness(1.06);
     box-shadow:
-      0 16px 32px rgba(47,143,212,0.48),
-      0 0 0 4px rgba(124,200,240,0.25),
-      inset 0 1px 0 rgba(255,255,255,0.4) !important;
+      0 14px 30px rgba(30,138,216,0.42),
+      0 0 28px rgba(57,198,255,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.35) !important;
     color: #fff !important;
   }}
   .stButton > button[kind="primary"]:active,
   button[data-testid="baseButton-primary"]:active {{
-    transform: translateY(0) scale(0.98);
-    filter: brightness(0.98);
+    transform: translateY(0) scale(0.985);
   }}
 
   .stButton > button:disabled,
   .stDownloadButton > button:disabled,
   button[disabled] {{
-    opacity: 0.5 !important;
+    opacity: 0.48 !important;
     transform: none !important;
     animation: none !important;
     box-shadow: none !important;
-    cursor: not-allowed !important;
   }}
 
   div[data-testid="column"] .stButton > button {{ width: 100%; }}
 
   h1, h2, h3 {{ color: var(--deep) !important; }}
   h2, h3 {{
-    font-family: "Nunito", sans-serif !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.02em;
+    font-family: "Orbitron", "Space Grotesk", sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em;
+    text-transform: none;
   }}
 
   .stTextInput input,
   .stTextArea textarea,
   .stSelectbox div[data-baseweb="select"] > div {{
-    border-radius: 16px !important;
+    border-radius: 10px !important;
     border-color: var(--line) !important;
-    background: #fff !important;
-    box-shadow: 0 2px 8px rgba(40,110,170,0.04);
+    background: rgba(255,255,255,0.92) !important;
+    box-shadow: inset 0 0 0 1px rgba(57,198,255,0.05);
   }}
-  .stTextArea textarea {{ border-radius: 18px !important; }}
+  .stTextInput input:focus,
+  .stTextArea textarea:focus {{
+    border-color: rgba(57,198,255,0.65) !important;
+    box-shadow: 0 0 0 3px rgba(57,198,255,0.15) !important;
+  }}
 
   div[data-testid="stSlider"] [role="slider"] {{
-    background-color: var(--blue) !important;
+    background-color: var(--cyan) !important;
+    box-shadow: 0 0 10px rgba(57,198,255,0.45);
   }}
 
-  hr {{ border-color: var(--line) !important; }}
+  hr {{
+    border: none !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, transparent, rgba(30,138,216,0.35), transparent) !important;
+  }}
 
   div[data-testid="stExpander"] {{
-    background: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.78);
     border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: var(--shadow-soft);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
   }}
-  div[data-testid="stAlert"] {{ border-radius: 16px; }}
-
-  /* 主内容区块轻微卡片化 */
-  div[data-testid="stVerticalBlockBorderWrapper"] {{
-    border-radius: 20px !important;
-  }}
+  div[data-testid="stAlert"] {{ border-radius: 12px; }}
 
   header[data-testid="stHeader"] {{ background: transparent; }}
   div[data-testid="stDecoration"] {{ display: none; }}
@@ -504,26 +611,29 @@ def _chem_hero_html() -> str:
     mascot = ""
     if _MASCOT_B64:
         mascot = (
-            f'<img alt="Bunny chemist" '
+            f'<img alt="Sci-fi bunny chemist" '
             f'src="data:image/png;base64,{_MASCOT_B64}" />'
         )
     return f"""
 <div class="chem-top">
-  <div>
+  <div style="position:relative;z-index:1;">
+    <p class="chem-kicker">ChemOps // Neural Lab Console</p>
     <p class="chem-top-title">Davina <span>ChemAgent</span></p>
-    <p class="chem-top-sub">可爱实验室搭子 · 反应预测 · 分子库 · 蛋白对接 · NMR / 文献</p>
+    <p class="chem-top-sub">
+      冰蓝分子计算台 · 反应推演 · 结构检索 · 蛋白对接 · 光谱 / 文献链路
+    </p>
   </div>
   <div class="chem-top-mascot-wrap">{mascot}</div>
 </div>
 <div class="chem-welcome">
   <div class="chem-welcome-art">{mascot}</div>
   <div>
-    <h3>嗨，我是小白兔实验员</h3>
-    <p>选好原料和条件后点「开始预测」；也可以去蛋白对接页做 Vina，或在分子库里查结构。</p>
+    <h3>SYSTEM READY · 白兔实验员在线</h3>
+    <p>配置原料与反应参数后启动预测引擎；也可切换至对接模块运行 Vina，或在分子库执行结构检索。</p>
     <div class="chem-steps">
-      <span class="chem-step"><i>1</i>解析原料</span>
-      <span class="chem-step"><i>2</i>选引擎预测</span>
-      <span class="chem-step"><i>3</i>看产物 / 对接</span>
+      <span class="chem-step"><i>01</i>解析原料</span>
+      <span class="chem-step"><i>02</i>引擎推演</span>
+      <span class="chem-step"><i>03</i>产物 / 对接</span>
     </div>
   </div>
 </div>
@@ -534,21 +644,21 @@ def _chem_sidebar_brand_html() -> str:
     avatar = ""
     if _MASCOT_B64:
         avatar = (
-            f'<img class="chem-side-avatar" alt="Bunny chemist" '
+            f'<img class="chem-side-avatar" alt="Sci-fi bunny chemist" '
             f'src="data:image/png;base64,{_MASCOT_B64}" />'
         )
     elif _FAVICON_B64:
         avatar = (
             f'<img class="chem-side-avatar" alt="ChemAgent mark" '
             f'src="data:image/png;base64,{_FAVICON_B64}" '
-            f'style="object-fit:contain;padding:12px;" />'
+            f'style="object-fit:contain;padding:12px;background:#fff;" />'
         )
     return f"""
 <div class="chem-side-brand">
   {avatar}
   <p class="chem-side-name">ChemAgent</p>
-  <p class="chem-side-sub">蓝白实验室 · 动物科学家</p>
-  <div class="chem-side-badge">在线值班中</div>
+  <p class="chem-side-sub">Ice-Tech Lab Node</p>
+  <div class="chem-side-badge">Link Active</div>
 </div>
 """
 
