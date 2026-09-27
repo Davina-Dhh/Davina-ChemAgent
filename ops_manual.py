@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
-_MANUAL_VERSION = "v6"
+_MANUAL_VERSION = "v7"
 _INJECT_FILE = Path(__file__).resolve().parent / "static" / "ops_manual_inject.html"
 
 
@@ -42,7 +42,7 @@ def _manual_body_html() -> str:
     <li>打开「反应预测」（默认页）</li>
     <li>原料已预填溴苯 + 苯硼酸；或改名后点「解析」/「一键解析」</li>
     <li>条件可保持默认（溶剂/温度/催化剂等）</li>
-    <li>产物引擎选「自动」或「大模型」→ 点 <b>开始预测</b></li>
+    <li>产物引擎默认「自动」（优先专业反应模型，连不上再用大模型）→ 点 <b>开始预测</b></li>
     <li>看主产物；需要对接则点 <b>添加为对接配体</b>（自动跳转）</li>
   </ol>
   <p class="com-tip">侧栏 Key 演示环境一般不用改。IBM RXN / ReactionT5 按需再开。</p>

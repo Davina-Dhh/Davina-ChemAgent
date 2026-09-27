@@ -568,7 +568,11 @@ def run_prediction(
             else:
                 raise RuntimeError("ReactionT5 未返回可解析的产物 SMILES")
         except Exception as exc:  # noqa: BLE001
-            warnings.append(f"ReactionT5 暂不可用，已改用备用引擎：{exc}")
+            # 远程断线 / 本机未开：自动改用 RXN 或大模型，不中断流程
+            msg = str(exc)
+            if len(msg) > 180:
+                msg = msg[:180] + "…"
+            warnings.append(f"ReactionT5 暂不可用，已改用备用引擎：{msg}")
             force_t5 = False
             products = []
 
@@ -590,7 +594,8 @@ def run_prediction(
             engine = f"LLM `{llm_model}`（产物估计，非专业反应模型）"
             product_backend = "llm"
             warnings.append(
-                f"产物由大模型 `{llm_model}` 估计。可改选「ReactionT5 本机」或填写 RXN Key。"
+                f"产物由大模型 `{llm_model}` 估计（备用）。"
+                "可在侧栏填写自己的 OpenAI 兼容 Key，或恢复 ReactionT5 远程后重试。"
             )
         except Exception as exc:  # noqa: BLE001
             warnings.append(f"LLM 产物预测失败: {exc}")

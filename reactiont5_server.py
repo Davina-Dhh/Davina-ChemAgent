@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import os
 import secrets
+from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, Header, HTTPException
@@ -106,8 +107,14 @@ def main() -> None:
     import uvicorn
 
     port = int((os.getenv("REACTIONT5_PORT") or "8765").strip() or "8765")
-    # 服务端自己跑推理，绕过 Cloud 禁用逻辑
     os.environ.setdefault("ENABLE_REACTIONT5", "1")
+    # 与 restore 脚本一致：优先读项目根目录令牌文件
+    if not (os.getenv("REACTIONT5_API_TOKEN") or "").strip():
+        tok_path = Path(__file__).resolve().parent / ".reactiont5_token"
+        if tok_path.is_file():
+            os.environ["REACTIONT5_API_TOKEN"] = tok_path.read_text(
+                encoding="utf-8"
+            ).strip()
     uvicorn.run(
         "reactiont5_server:app",
         host="0.0.0.0",

@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .env
+.reactiont5_token
 *.log
 outputs/
 data/

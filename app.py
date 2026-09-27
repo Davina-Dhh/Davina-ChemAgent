@@ -1166,18 +1166,18 @@ def _sidebar_keys() -> None:
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.caption("ReactionT5 远程服务（可选）")
+    st.sidebar.caption("专业反应模型 · 远程服务（Cloud 默认连这台电脑）")
     t5_url = st.sidebar.text_input(
-        "ReactionT5 API URL",
+        "反应模型 API URL",
         value=os.getenv("REACTIONT5_API_URL", ""),
-        help="本机 uvicorn + cloudflared/ngrok 的公网地址，如 https://xxxx.trycloudflare.com",
+        help="本机服务经 cloudflared/ngrok 暴露的 https 地址。重启电脑后 URL 常会变，需更新 Secrets。",
         placeholder="https://xxxx.trycloudflare.com",
     )
     t5_tok = st.sidebar.text_input(
-        "ReactionT5 API Token",
+        "反应模型 API Token",
         value=os.getenv("REACTIONT5_API_TOKEN", ""),
         type="password",
-        help="与本机 REACTIONT5_API_TOKEN 一致；不设则服务端可不校验（不安全）",
+        help="与本机 .reactiont5_token / 环境变量一致",
     )
 
     presets = [
@@ -2108,14 +2108,13 @@ def page_predict():
     has_rxn = bool((os.getenv("RXN4CHEM_API_KEY") or "").strip())
     has_t5_url = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
     engine_labels = {
-        "auto": "自动（优先 ReactionT5 → 连不上再用大模型）",
-        "reactiont5": "仅 ReactionT5"
-        + (" · 远程已配置" if has_t5_url else " · 本机/需配置远程 URL"),
+        "auto": "自动（优先专业反应模型 → 连不上再用大模型）",
+        "reactiont5": "仅专业反应模型"
+        + (" · 远程已配置" if has_t5_url else " · 本机或需配置远程 URL"),
         "llm": f"仅大模型 — `{st.session_state.get('ui_llm_model', os.getenv('CHEMCROW_MODEL', 'agnes-2.5-flash'))}`（可填自己的 Key）",
         "rxn": "IBM RXN（需 Key）" + ("" if has_rxn else " ⚠️ 未填 Key"),
     }
     engine_keys = list(engine_labels.keys())
-    # 已配远程 T5 时默认「自动」，这样 Cloud 一打开就优先打你家电脑
     default_engine = "auto"
     product_engine = st.radio(
         "产物预测后端",
@@ -2124,7 +2123,7 @@ def page_predict():
         index=engine_keys.index(default_engine),
         horizontal=False,
         key="product_engine_radio",
-        help="自动：先连 ReactionT5（本机或远程 URL）；失败则用侧栏大模型。可自行填写 OpenAI 兼容 Key。",
+        help="默认自动：先连专业反应模型（本机/远程）；失败则用侧栏大模型。也可填写自己的 OpenAI 兼容 Key。",
     )
     if product_engine in ("auto", "reactiont5"):
         try:
@@ -2132,16 +2131,19 @@ def page_predict():
 
             cs = cache_status()
             if cs.get("remote"):
-                st.caption(f"ReactionT5 远程：`{cs.get('remote_url')}`（连不上会自动改用大模型）")
+                st.caption(
+                    f"默认走远程反应模型：`{cs.get('remote_url')}`"
+                    " · 连不上会自动改用大模型"
+                )
             elif cs.get("ready"):
-                st.caption("ReactionT5：本地缓存已就绪。")
+                st.caption("本机反应模型缓存已就绪。")
             else:
                 st.caption(
-                    "ReactionT5：本地缓存未就绪（首次会下载）。"
-                    "Cloud 请在 Secrets/侧栏配置远程 API URL。"
+                    "本机反应模型缓存未就绪（首次会下载）。"
+                    "Cloud 请在 Secrets 配置远程 API URL。"
                 )
         except Exception:
-            st.caption("ReactionT5：本机或远程。")
+            pass
     if product_engine == "llm":
         st.info(
             f"将仅用大模型 **`{st.session_state.get('ui_llm_model', 'agnes-2.5-flash')}`**。"
