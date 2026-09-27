@@ -3714,10 +3714,20 @@ def page_protein():
                     elif viz.get("pymol_exe"):
                         st.caption(f"PyMOL 可执行文件：`{viz.get('pymol_exe')}`")
                     else:
-                        st.warning(
-                            "未检测到内嵌 pymol2。请在 venv 执行："
-                            "`pip install pymol-open-source`"
-                        )
+                        try:
+                            from cloud_env import is_streamlit_cloud as _is_cloud
+                        except Exception:
+                            _is_cloud = lambda: False  # type: ignore[assignment]
+                        if _is_cloud():
+                            st.info(
+                                "Cloud 环境无内嵌 PyMOL（当前平台 Python 无可用 wheel）。"
+                                "三维结构请用上方 **py3Dmol**；出版级 PNG 请在本机对接页渲染。"
+                            )
+                        else:
+                            st.warning(
+                                "未检测到内嵌 pymol2。本机 venv 执行："
+                                "`pip install -r requirements-dock.txt`"
+                            )
 
                     with st.expander("作图说明（对应你的流程）", expanded=False):
                         st.markdown(

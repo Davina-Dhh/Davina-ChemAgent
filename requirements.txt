@@ -1,7 +1,8 @@
 # Streamlit Community Cloud / 公网演示依赖（不含 ReactionT5/torch）
-# 本机完整功能另见 requirements-dock.txt + torch/transformers
+# 本机完整功能另见 requirements-dock.txt（含 pymol-open-source）
 #
-# 蛋白对接链路硬依赖已全部列出（含 Meeko 未声明的 scipy/gemmi，以及出版图 PyMOL）。
+# 注意：pymol-open-source 在 Cloud 当前 Python 3.14 无可用 wheel，
+# 不可写入本文件，否则整次依赖安装失败。Cloud 出版图走 py3Dmol / matplotlib。
 
 streamlit>=1.28.0
 python-dotenv>=1.0.0
@@ -9,8 +10,9 @@ requests>=2.28.0
 openai>=0.28,<1.0
 Pillow>=10.0.0
 setuptools>=70,<81
+pyarrow>=14,<25
 
-# --- 化学 / 对接 / 出版图 ---
+# --- 化学 / 对接（Cloud）---
 rdkit>=2023.9.1
 numpy>=1.24.0
 scipy>=1.10.0
@@ -18,4 +20,3 @@ gemmi>=0.6.0
 meeko>=0.5.0
 matplotlib>=3.7.0
 py3Dmol>=2.0.0
-pymol-open-source>=3.0.0
