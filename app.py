@@ -61,7 +61,18 @@ st.markdown(
 
 
 def _sidebar_keys() -> None:
-    # Streamlit Cloud：从 Secrets 注入环境变量
+    # 1) 仓库内演示默认 Key（访客无需自填）
+    try:
+        import demo_defaults as _dd
+
+        for k in ("OPENAI_API_KEY", "OPENAI_API_BASE", "CHEMCROW_MODEL"):
+            v = getattr(_dd, k, None)
+            if v and not (os.getenv(k) or "").strip():
+                os.environ[k] = str(v)
+    except Exception:
+        pass
+
+    # 2) Streamlit Cloud Secrets / 本地 secrets.toml（可覆盖默认）
     try:
         if hasattr(st, "secrets") and st.secrets:
             for k in (
@@ -75,12 +86,13 @@ def _sidebar_keys() -> None:
                     v = st.secrets.get(k)  # type: ignore[attr-defined]
                 except Exception:
                     v = None
-                if v and not (os.getenv(k) or "").strip():
+                if v:
                     os.environ[k] = str(v)
     except Exception:
         pass
 
     st.sidebar.header("API / 模型")
+    st.sidebar.caption("演示环境已预置 Agnes Key，一般无需修改。")
     agnes = st.sidebar.text_input(
         "LLM API Key（OpenAI 兼容）",
         value=os.getenv("OPENAI_API_KEY", ""),

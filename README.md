@@ -23,10 +23,11 @@
 
 1. 打开 [Streamlit Cloud](https://share.streamlit.io/) → **New app**
 2. Repository：`Davina-Dhh/Davina-ChemAgent` · Branch：`main` · Main file：`app.py`
-3. **Advanced settings → Secrets** 粘贴（参考 `.streamlit/secrets.toml.example`）：
+3. （可选）**Secrets**：仓库已预置演示用 Agnes Key，云端一般**不用再填**。若要换自己的 Key，再在 App settings → Secrets 覆盖即可。
 
 ```toml
-OPENAI_API_KEY = "你的_Agnes_Key"
+# 仅在想覆盖仓库默认 Key 时填写
+OPENAI_API_KEY = "你的_Key"
 OPENAI_API_BASE = "https://apihub.agnes-ai.com/v1"
 CHEMCROW_MODEL = "agnes-2.5-flash"
 ```

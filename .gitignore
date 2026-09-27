@@ -19,5 +19,4 @@ hf_cache/
 .idea/
 .vscode/
 .DS_Store
-.streamlit/secrets.toml
 _clean.pdb
