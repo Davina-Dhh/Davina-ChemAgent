@@ -161,10 +161,9 @@ def _load_model():
 
             if not reactiont5_allowed():
                 raise RuntimeError(
-                    "当前为 Streamlit Cloud / 云端环境：ReactionT5（~0.2B，加载约需 1–2GB+ RAM）"
-                    "超过 Community Cloud 可用内存，已禁用本机模型。"
-                    "请改用侧边栏「大模型产物估计」（Agnes / GPT 等）。"
-                    "本机演示可设 ENABLE_REACTIONT5=1。"
+                    "当前为 Streamlit Cloud / 云端环境：无法在云端直接加载 ReactionT5。"
+                    "请配置 REACTIONT5_API_URL 指向本机隧道，或改用大模型。"
+                    "本机服务请设 ENABLE_REACTIONT5=1。"
                 )
         except ImportError:
             pass
