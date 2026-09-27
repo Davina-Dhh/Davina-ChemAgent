@@ -1167,19 +1167,25 @@ def _sidebar_keys() -> None:
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.caption("专业反应模型（电脑开机跑 keep_t5_online.bat 即可）")
-    t5_url = st.sidebar.text_input(
-        "反应模型 API URL（可留空，自动发现）",
-        value=os.getenv("REACTIONT5_API_URL", ""),
-        help="一般留空：Cloud 会读仓库里的发现链接。只有要手动覆盖时才填。",
-        placeholder="通常留空即可",
+    st.sidebar.caption(
+        "专业反应模型：本机开机运行 keep_t5_online.bat（可装开机自启），"
+        "Cloud 自动发现地址，刷新即可调用。"
     )
-    t5_tok = st.sidebar.text_input(
-        "反应模型 API Token",
-        value=os.getenv("REACTIONT5_API_TOKEN", ""),
-        type="password",
-        help="与本机 .reactiont5_token 一致（Cloud Secrets 配一次即可）",
-    )
+    with st.sidebar.expander("高级：手动覆盖地址 / Token", expanded=False):
+        t5_url = st.text_input(
+            "反应模型 API URL（可留空）",
+            value=os.getenv("REACTIONT5_API_URL", ""),
+            help="一般留空，走自动发现。",
+            placeholder="通常留空",
+            key="t5_api_url_input",
+        )
+        t5_tok = st.text_input(
+            "反应模型 API Token",
+            value=os.getenv("REACTIONT5_API_TOKEN", ""),
+            type="password",
+            help="与本机 .reactiont5_token 一致；Cloud Secrets 配一次即可",
+            key="t5_api_tok_input",
+        )
 
     presets = [
         "agnes-2.5-flash",
@@ -1223,12 +1229,17 @@ def _sidebar_keys() -> None:
     st.sidebar.markdown("---")
     has_rxn = bool((rxn or os.getenv("RXN4CHEM_API_KEY") or "").strip())
     has_hf = bool((hf or os.getenv("HF_TOKEN") or "").strip())
-    has_t5_remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
+    try:
+        from reactiont5_remote import resolve_reactiont5_base_url as _rb
+
+        has_t5_remote = bool(_rb())
+    except Exception:
+        has_t5_remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
     st.sidebar.caption(
-        "产物引擎：大模型 / ReactionT5（本机或远程）/ IBM RXN。"
-        + (" 已有 RXN。" if has_rxn else "")
-        + (" 已有 HF Token。" if has_hf else "")
-        + (" 已接 ReactionT5 远程。" if has_t5_remote else "")
+        "产物：自动优先专业反应模型，连不上再用大模型 / 自备 Key。"
+        + (" · 反应模型在线" if has_t5_remote else " · 反应模型未在线（本机跑 keep_t5_online）")
+        + (" · 已有 RXN" if has_rxn else "")
+        + (" · 已有 HF" if has_hf else "")
     )
 
 

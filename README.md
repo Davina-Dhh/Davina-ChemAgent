@@ -20,24 +20,22 @@
 > 大模型估算产物质量通常明显弱于 ReactionT5。  
 > **推荐：本机跑 ReactionT5 API，用隧道暴露，Cloud 远程调用（质量与本机一致）。**
 
-### Cloud + 本机专业反应模型（推荐，最省事）
+### Cloud + 本机专业反应模型（推荐）
 
-**电脑开机后双击一次 `keep_t5_online.bat` 即可。**  
-脚本会：启动本机服务 → 开公网隧道 → **自动把新地址推到 GitHub 发现链接**。  
-Cloud **不用每次改 URL**；页面刷新也会自动连上（电脑开着、两个黑窗口别关）。
+**你要做的只有一件事：电脑开着时让服务在线。**
 
-首次只需在 Cloud Secrets 配一次 Token（与本机 `.reactiont5_token` 相同）：
+1. 首次（或每次开机）：双击 `keep_t5_online.bat`  
+   （想更省事：再双击一次 `install_keep_t5_autostart.bat`，以后登录自动跑）
+2. Cloud Secrets **只配一次 Token**（与本机 `.reactiont5_token` 相同）：
 
 ```toml
 REACTIONT5_API_TOKEN = "与本机一致"
-# URL 可省略：默认读仓库 static/t5_endpoint.json
 ```
 
-依赖：本机已装 `cloudflared`，且 `git push` 能推到本仓库。
+之后：**不用改 URL、不用管刷新**——Cloud 会读仓库里的发现链接 `static/t5_endpoint.json`（脚本会自动更新并 push）。  
+页面怎么刷新都直接调用你家电脑；电脑关了/休眠了才会回退大模型。
 
-### 电脑重启后
-
-再双击 **`keep_t5_online.bat`** 一次就行，不必改 Cloud Secrets。
+依赖：本机已装 `cloudflared`，且能 `git push` 到本仓库。
 
 ### 仅部署 Streamlit 壳
 
