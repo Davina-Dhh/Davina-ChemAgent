@@ -508,15 +508,15 @@ def run_prediction(
     if force_rxn and not key:
         raise RuntimeError("已选择 IBM RXN，但未填写 RXN4CHEM_API_KEY。")
 
-    # --- ReactionT5 本机（仅手动选择；首次下载后本地推理）---
+    # --- ReactionT5（远程 API 优先，否则本机）---
     if force_t5:
         try:
-            from reactiont5_remote import MODEL_LABEL, predict_products_local
+            from reactiont5_remote import MODEL_LABEL, predict_products
 
             parts = precursors.split(".")
             reac = ".".join(parts[:2]) if len(parts) >= 2 else precursors
             reags = ".".join(parts[2:]) if len(parts) > 2 else reagents.strip()
-            hits = predict_products_local(reac, reags, top_n=top_n)
+            hits = predict_products(reac, reags, top_n=top_n)
             for i, (smi, score) in enumerate(hits):
                 ok, canon = validate_smiles(smi)
                 if not ok:
@@ -531,7 +531,7 @@ def run_prediction(
                                     role="product"
                                     if len(products) == 0
                                     else "byproduct_candidate",
-                                    source="reactiont5-local",
+                                    source="reactiont5",
                                 )
                             )
                             break
@@ -542,24 +542,28 @@ def run_prediction(
                         rank=len(products) + 1,
                         score=score,
                         role="product" if i == 0 else "byproduct_candidate",
-                        source="reactiont5-local",
+                        source="reactiont5",
                     )
                 )
             if products:
+                remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
+                where = "远程服务" if remote else "本机"
                 engine = (
-                    f"ReactionT5 本机（{MODEL_LABEL}）"
+                    f"ReactionT5 {where}（{MODEL_LABEL}）"
                     f"+ LLM `{llm_model}`（条件/文献）"
                 )
                 product_backend = "reactiont5"
                 warnings.append(
-                    "ReactionT5 0.2B 本机推理（优先用本地缓存，无需每次联网）。"
+                    f"ReactionT5 0.2B {where}推理"
+                    + ("（经 REACTIONT5_API_URL）" if remote else "（本地缓存优先）")
+                    + "。"
                 )
             else:
                 raise RuntimeError("ReactionT5 未返回可解析的产物 SMILES")
         except Exception as exc:  # noqa: BLE001
-            # 下载/加载失败时自动回退大模型，避免整次预测挂掉
+            # 下载/加载/远程失败时自动回退大模型，避免整次预测挂掉
             warnings.append(
-                f"ReactionT5 本机不可用，已自动改用大模型 `{llm_model}`：{exc}"
+                f"ReactionT5 不可用，已自动改用大模型 `{llm_model}`：{exc}"
             )
             force_t5 = False
             products = []

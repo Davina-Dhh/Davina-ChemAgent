@@ -248,16 +248,96 @@ def predict_products_remote(
     timeout: float = 300.0,
     max_wait_load: float = 240.0,
 ) -> List[Tuple[str, Optional[float]]]:
-    """兼容旧名：实际为本机推理。"""
-    del timeout, max_wait_load
+    """调用远程 ReactionT5 HTTP 服务（本机隧道 / 自建机）。
+
+    环境变量:
+      REACTIONT5_API_URL    如 https://xxxx.trycloudflare.com 或 http://host:8765
+      REACTIONT5_API_TOKEN  与服务端一致的令牌（可选但强烈建议）
+    """
+    del max_wait_load
+    import json
+    import urllib.error
+    import urllib.request
+
+    base = (os.getenv("REACTIONT5_API_URL") or "").strip().rstrip("/")
+    if not base:
+        raise RuntimeError(
+            "未配置 REACTIONT5_API_URL。请在本机启动 reactiont5_server，"
+            "用 cloudflared/ngrok 暴露后，把公网 URL 写入 Streamlit Secrets。"
+        )
+
+    url = base + "/predict"
+    payload = json.dumps(
+        {
+            "reactants": reactants,
+            "reagents": reagents or "",
+            "top_n": int(top_n),
+        },
+        ensure_ascii=False,
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    token = (os.getenv("REACTIONT5_API_TOKEN") or "").strip()
+    if token:
+        req.add_header("X-API-Token", token)
+        req.add_header("Authorization", f"Bearer {token}")
+
+    try:
+        with urllib.request.urlopen(req, timeout=float(timeout)) as resp:
+            data = json.loads(resp.read().decode("utf-8", errors="replace"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
+        raise RuntimeError(f"ReactionT5 远程 HTTP {exc.code}: {detail}") from exc
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"无法连接 ReactionT5 远程服务 `{base}`：{exc}\n"
+            "请确认本机服务已启动，且隧道（cloudflared/ngrok）在线。"
+        ) from exc
+
+    products = data.get("products") or []
+    out: List[Tuple[str, Optional[float]]] = []
+    for p in products:
+        if isinstance(p, dict):
+            smi = (p.get("smiles") or "").strip()
+            sc = p.get("score")
+        else:
+            continue
+        if smi:
+            out.append((smi, sc if isinstance(sc, (int, float)) else None))
+    return out
+
+
+def predict_products(
+    reactants: str,
+    reagents: str = "",
+    *,
+    top_n: int = 5,
+) -> List[Tuple[str, Optional[float]]]:
+    """优先远程 API；无 URL 时再本机推理。"""
+    if (os.getenv("REACTIONT5_API_URL") or "").strip():
+        return predict_products_remote(reactants, reagents, top_n=top_n)
     return predict_products_local(reactants, reagents, top_n=top_n)
 
 
 def cache_status() -> dict:
-    """给 UI 显示：缓存是否就绪。"""
+    """给 UI 显示：缓存是否就绪 / 是否走远程。"""
+    remote = (os.getenv("REACTIONT5_API_URL") or "").strip()
+    if remote:
+        return {
+            "model_id": MODEL_ID,
+            "ready": True,
+            "mode": f"远程 API · {remote}",
+            "remote": True,
+            "remote_url": remote,
+        }
     ready = _cache_ready(MODEL_ID)
     return {
         "model_id": MODEL_ID,
         "ready": ready,
         "mode": "离线本地缓存" if ready else "需从 hf-mirror 下载 ~800MB",
+        "remote": False,
     }

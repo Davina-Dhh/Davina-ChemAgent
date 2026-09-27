@@ -1129,6 +1129,8 @@ def _sidebar_keys() -> None:
                 "CHEMCROW_MODEL",
                 "RXN4CHEM_API_KEY",
                 "HF_TOKEN",
+                "REACTIONT5_API_URL",
+                "REACTIONT5_API_TOKEN",
             ):
                 try:
                     v = st.secrets.get(k)  # type: ignore[attr-defined]
@@ -1163,6 +1165,21 @@ def _sidebar_keys() -> None:
         help="ReactionT5 0.2B 本机推理，公开权重通常不需要 Token；填错反而会 401",
     )
 
+    st.sidebar.markdown("---")
+    st.sidebar.caption("ReactionT5 远程（Cloud 调用你家电脑）")
+    t5_url = st.sidebar.text_input(
+        "ReactionT5 API URL",
+        value=os.getenv("REACTIONT5_API_URL", ""),
+        help="本机 uvicorn + cloudflared/ngrok 的公网地址，如 https://xxxx.trycloudflare.com",
+        placeholder="https://xxxx.trycloudflare.com",
+    )
+    t5_tok = st.sidebar.text_input(
+        "ReactionT5 API Token",
+        value=os.getenv("REACTIONT5_API_TOKEN", ""),
+        type="password",
+        help="与本机 REACTIONT5_API_TOKEN 一致；不设则服务端可不校验（不安全）",
+    )
+
     presets = [
         "agnes-2.5-flash",
         "agnes-2.0-flash",
@@ -1194,15 +1211,23 @@ def _sidebar_keys() -> None:
     if hf:
         os.environ["HF_TOKEN"] = hf
         os.environ["HUGGINGFACE_HUB_TOKEN"] = hf
+    if t5_url.strip():
+        os.environ["REACTIONT5_API_URL"] = t5_url.strip().rstrip("/")
+    elif "REACTIONT5_API_URL" in os.environ and not (os.getenv("REACTIONT5_API_URL") or "").strip():
+        pass
+    if t5_tok.strip():
+        os.environ["REACTIONT5_API_TOKEN"] = t5_tok.strip()
     os.environ["CHEMCROW_MODEL"] = st.session_state["ui_llm_model"]
 
     st.sidebar.markdown("---")
     has_rxn = bool((rxn or os.getenv("RXN4CHEM_API_KEY") or "").strip())
     has_hf = bool((hf or os.getenv("HF_TOKEN") or "").strip())
+    has_t5_remote = bool((os.getenv("REACTIONT5_API_URL") or "").strip())
     st.sidebar.caption(
-        "产物引擎：大模型 / ReactionT5 本机 / IBM RXN。"
+        "产物引擎：大模型 / ReactionT5（本机或远程）/ IBM RXN。"
         + (" 已有 RXN。" if has_rxn else "")
         + (" 已有 HF Token。" if has_hf else "")
+        + (" 已接 ReactionT5 远程。" if has_t5_remote else "")
     )
 
 
@@ -2084,7 +2109,11 @@ def page_predict():
     engine_labels = {
         "auto": "自动（有 RXN Key → RXN，否则大模型）",
         "llm": f"大模型产物估计 — `{st.session_state.get('ui_llm_model', os.getenv('CHEMCROW_MODEL', 'agnes-2.5-flash'))}`",
-        "reactiont5": "ReactionT5 本机 0.2B（已缓存则离线加载）",
+        "reactiont5": (
+            "ReactionT5 远程 API（Cloud → 你家电脑）"
+            if (os.getenv("REACTIONT5_API_URL") or "").strip()
+            else "ReactionT5 本机 0.2B（已缓存则离线；Cloud 请配远程 URL）"
+        ),
         "rxn": "IBM RXN（需 Key）" + ("" if has_rxn else " ⚠️ 未填 Key"),
     }
     product_engine = st.radio(
@@ -2093,23 +2122,30 @@ def page_predict():
         format_func=lambda k: engine_labels[k],
         index=0,
         horizontal=False,
-        help="ReactionT5 已缓存则强制离线；网络差时请选大模型。",
+        help="Cloud 上请用侧栏 REACTIONT5_API_URL 指向本机隧道；本机可直接跑本地缓存。",
     )
     if product_engine == "reactiont5":
         try:
             from reactiont5_remote import cache_status
 
             cs = cache_status()
-            if cs.get("ready"):
+            if cs.get("remote"):
+                st.success(
+                    f"将调用远程 ReactionT5：`{cs.get('remote_url')}`"
+                    "（请保持本机服务 + 隧道在线）"
+                )
+            elif cs.get("ready"):
                 st.caption("ReactionT5：**本地缓存已就绪**，离线加载（不访问外网）。")
             else:
                 st.warning(
                     "ReactionT5 本地缓存未就绪，将从 hf-mirror 下载 ~800MB。"
-                    "网络不稳请改选「大模型产物估计」。"
+                    "若在 Streamlit Cloud：请改用「远程 API」——本机启动 "
+                    "`start_reactiont5_server.bat` + cloudflared，并在 Secrets/"
+                    "侧栏填写 REACTIONT5_API_URL。"
                 )
         except Exception:
-            st.caption("ReactionT5 本机推理；有缓存则离线。")
-        st.caption("失败会自动改用大模型；侧边栏 HF Token 可不填。")
+            st.caption("ReactionT5：本机或远程 API。")
+        st.caption("失败会自动改用大模型；远程需本机电脑开机且隧道存活。")
     else:
         st.info(
             f"大模型：**`{st.session_state.get('ui_llm_model', 'agnes-2.5-flash')}`**"

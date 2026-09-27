@@ -1,0 +1,4 @@
+# 本机 ReactionT5 HTTP 服务（Cloud 远程调用）
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+# 另需: torch transformers sentencepiece（见 README）

@@ -16,23 +16,47 @@
 
 ## Streamlit Cloud 部署（公网展示）
 
-> **ReactionT5（约 0.2B，磁盘 ~760MB）请勿指望在 Streamlit Community Cloud 运行。**  
-> 云端免费档 RAM 约 0.7–2.7GB；`torch + transformers + 权重` 加载常需 1.5–3GB+，会 OOM / 重启。  
-> **仓库故意不上传 HF 权重**（也超过 GitHub 单文件 100MB 建议上限）。  
-> **公网演示请用侧边栏「大模型产物估计」（Agnes / GPT 等）**；本机可另装 torch 离线跑 ReactionT5。
+> **ReactionT5 不能直接装进 Streamlit Community Cloud**（权重 ~800MB，加载常需 1.5–3GB+ RAM，会 OOM）。  
+> 大模型估算产物质量通常明显弱于 ReactionT5。  
+> **推荐：本机跑 ReactionT5 API，用隧道暴露，Cloud 远程调用（质量与本机一致）。**
+
+### Cloud + 本机 ReactionT5（推荐）
+
+1. **本机**安装依赖并启动服务（首次会下载/加载模型，之后用缓存）：
+
+```powershell
+cd Davina-ChemAgent
+.\.venv\Scripts\pip install -r requirements-t5-server.txt
+.\.venv\Scripts\pip install torch transformers sentencepiece
+set REACTIONT5_API_TOKEN=换成一串随机密码
+.\start_reactiont5_server.bat
+```
+
+2. **另开终端**暴露公网（任选）：
+
+```powershell
+# Cloudflare 快速隧道（免费，无需注册也可试）
+cloudflared tunnel --url http://127.0.0.1:8765
+
+# 或 ngrok
+ngrok http 8765
+```
+
+3. 把隧道给出的 `https://....` 填进 **Streamlit Cloud → Secrets**（或本地侧栏）：
+
+```toml
+REACTIONT5_API_URL = "https://xxxx.trycloudflare.com"
+REACTIONT5_API_TOKEN = "与本机一致的随机密码"
+```
+
+4. Cloud 页面选 **「ReactionT5 远程 API」** → 开始预测。  
+   **注意：本机电脑要开机，服务和隧道都要保持运行。**
+
+### 仅部署 Streamlit 壳
 
 1. 打开 [Streamlit Cloud](https://share.streamlit.io/) → **New app**
 2. Repository：`Davina-Dhh/Davina-ChemAgent` · Branch：`main` · Main file：`app.py`
-3. （可选）**Secrets**：仓库已预置演示用 Agnes Key，云端一般**不用再填**。若要换自己的 Key，再在 App settings → Secrets 覆盖即可。
-
-```toml
-# 仅在想覆盖仓库默认 Key 时填写
-OPENAI_API_KEY = "你的_Key"
-OPENAI_API_BASE = "https://apihub.agnes-ai.com/v1"
-CHEMCROW_MODEL = "agnes-2.5-flash"
-```
-
-4. Deploy → 自定义子域 `davina-chemagent`（若已占用则在设置里改）
+3. （可选）**Secrets**：仓库已预置演示用 Agnes Key；要接 ReactionT5 远程再加上面两项。
 
 ## 本机运行
 
